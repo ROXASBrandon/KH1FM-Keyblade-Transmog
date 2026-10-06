@@ -3,7 +3,7 @@ originalAuthor: ROXASBrandon
 description: >
   Q cycles 18 cosmetic Keyblade models and their matching hit sounds, retaining the equipped
   weapon's combat stats. Shift+Q restores its original look.
-  Steam Global 1.0.0.2 and LuaBackend required. Preview 0.1.3.
+  Steam Global 1.0.0.2 and LuaBackend required. Preview 0.1.12.
 game: kh1
 assets:
   - name: scripts/kh1_keyblade_transmog.lua

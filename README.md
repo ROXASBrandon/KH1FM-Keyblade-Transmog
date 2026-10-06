@@ -2,9 +2,17 @@
 
 ![Sora seamlessly cycling Keyblades — Keyblade Transmog animated gameplay banner](images/banner.gif)
 
-[Download v0.1.3 preview](https://github.com/ROXASBrandon/KH1FM-Keyblade-Transmog/raw/refs/heads/main/downloads/Keyblade-Transmog-v0.1.3-preview.zip) · [Report a bug](https://github.com/ROXASBrandon/KH1FM-Keyblade-Transmog/issues)
+[Download v0.1.12 preview](https://github.com/ROXASBrandon/KH1FM-Keyblade-Transmog/raw/refs/heads/main/downloads/Keyblade-Transmog-v0.1.12-preview.zip) · [Report a bug](https://github.com/ROXASBrandon/KH1FM-Keyblade-Transmog/issues)
 
-**Version 0.1.3 preview — ROXASBrandon**
+**Version 0.1.12 preview — ROXASBrandon**
+
+**Tested in gameplay on the author's setup.** All 18 appearances, battle swaps,
+equipped stats/abilities, matching hit sounds, Shift+Q reset, room transitions,
+save/reload, and a fresh restart passed the final gameplay checks.
+
+**Known limitation:** each accepted swap briefly pauses gameplay while the new
+weapon loads. Presses during swings or movement are ignored. Appearance selection
+resets after restarting the game; your equipped weapon and save remain unchanged.
 
 For Kingdom Hearts Final Mix, Steam Global/WW 1.0.0.2 with LuaBackend.
 
@@ -47,10 +55,15 @@ for `[Keyblade Transmog] Ready`. Q is added without consuming or changing the
 game's existing keyboard binding. If Q already has a game action assigned,
 rebind that action in the game's settings to avoid doing both at once.
 
-Swapping briefly reloads the weapon through the game's asynchronous loader.
-Inputs during another weapon load or within 200 ms of a previous swap are
-ignored. Inputs in menus, cutscenes, gummi travel, death, or outside the focused
-game are ignored. Release and press Q again after returning to gameplay.
+Swapping briefly pauses gameplay while the new weapon model and sound bank load.
+A briefly absent blade can occur during loading. Gameplay resumes after the
+replacement weapon is attached and ready.
+
+Q requires 300 ms of standing idle with a valid weapon. Presses during attacks,
+movement, casting, or another swap are ignored and never queued. Stop moving or
+attacking, wait briefly, then press Q again. Inputs in menus, cutscenes, gummi
+travel, death, or outside the focused game are ignored. Release and press Q again
+after returning to gameplay.
 
 ## Remove
 
@@ -59,39 +72,27 @@ or disable the OpenKH mod and rebuild. Restart. The native frame hook remains
 loaded until process exit, so deleting a script or pressing F3 alone does not
 disable this mod. Do not replace the DLL while the game is running.
 
-## Validation boundary
+## Compatibility and testing
 
-**Preview: Q appearance switching has been confirmed working in gameplay.**
-Source was traced against the supported local executable. Model table layout,
-frame-hook signature, vanilla equip/loading path, and all 18 asset names were
-checked. Automated tests cover cosmetic-field isolation, unchanged stat bytes,
-exact restoration, cycle wrap, and keyboard edge detection. Build and package
-checks passed. A live memory check of the earlier appearance preview confirmed Jungle King remained equipped
-while showing Oathkeeper, with the combat-field checksum unchanged. Room
-transitions also retain the selected appearance, confirmed in gameplay.
-Version 0.1.3 pairs the cosmetic blade's sound bank with its matching hit-sound
-base ID. Tests verify all 324 equipped/appearance combinations and unchanged
-combat bytes. Actual in-game audio still needs verification after restart.
+Version 0.1.12 passed the author's final gameplay checks on Steam Global/WW
+1.0.0.2: all 18 appearances in battle, different equipped weapons with their
+stats/abilities retained, Shift+Q reset, room transitions, save/reload, a fresh
+restart, and matching hit sounds. The brief pause during a swap remains expected.
 
-A clean restart using the ZIP-installed 0.1.3 helper, other equipped weapons,
-hit sounds, death/continue, and removal still need explicit gameplay
-verification before labeling this a stable release. Other PCs and OpenKH
-ZIP installation have not been tested live.
+Automated checks cover all 324 equipped/appearance pairs, unchanged combat
+fields, exact restoration, input handling, delayed loading, native scheduler
+hooks, companion audio progression, and room submission during reload. The
+packaged helper matches the tested installed DLL. Other PCs and installation
+through OpenKH Mods Manager have not been tested live; this remains a preview.
 
 Model replacement mods editing the same Keyblade names are not supported;
 stat-only modifications are preserved. Other game versions disable this mod.
+No game assets, saves, account details, or game binaries are included. This mod
+does not edit game archives or save files.
 
-First test in a safe room: press Q, check the visible blade, open Equipment to
-confirm the original item, then test a different equipped Keyblade. Also check
-combat, room transitions, death/continue, and Shift+Q. If the model vanishes,
-freezes, or stats differ, close normally and remove the preview before saving.
-
-No game models, saves, account details, or game binaries are included. This
-mod does not edit game archives or save files. The native helper only edits
-model-name fields, the four-byte hit-sound base ID, and the graphics cache.
-All intervening and adjacent combat fields remain unchanged. Sound and model
-assets load through the existing vanilla paths. The game's normal re-equip routine
-is called with the same item ID to refresh the displayed weapon.
+See [development notes](DEVELOPMENT.md) for the native reload guard and prior
+crash investigations. Versions before 0.1.12 are superseded; use the current
+linked download.
 
 ## Build from source
 

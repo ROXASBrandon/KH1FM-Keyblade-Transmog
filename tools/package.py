@@ -8,17 +8,17 @@ import zipfile
 ROOT=Path(__file__).resolve().parents[1]
 if '--skip-build' not in sys.argv:
     subprocess.run([sys.executable,str(ROOT/'native/build.py')],check=True)
-files=['images/banner.gif','mod.yml','README.md','CREDITS.md','CHANGELOG.md',
+files=['images/banner.gif','mod.yml','README.md','CREDITS.md','CHANGELOG.md','DEVELOPMENT.md',
        'scripts/kh1_keyblade_transmog.lua','scripts/io_packages/kh1_transmog.dll',
        'native/kh1_transmog.c','native/transmog_core.h','native/build.py',
        'tests/transmog_core_test.c','tests/transmog_native_test.c']
 output=ROOT/'downloads'
 output.mkdir(exist_ok=True)
-archive=output/'Keyblade-Transmog-v0.1.3-preview.zip'
+archive=output/'Keyblade-Transmog-v0.1.12-preview.zip'
 with zipfile.ZipFile(archive,'w',compression=zipfile.ZIP_DEFLATED) as z:
     for name in files:
         payload=(ROOT/name).read_bytes()
-        for private in ('/mnt/','Users/roxas','Users'+chr(92)+'roxas'):
+        for private in ('/'+'mnt/','Users'+'/','Users'+chr(92)):
             for encoding in ('utf-8','utf-16le'):
                 if private.encode(encoding) in payload:
                     raise ValueError('Private path in '+name)

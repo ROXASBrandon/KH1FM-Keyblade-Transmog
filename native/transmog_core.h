@@ -2,6 +2,7 @@
 #define TRANSMOG_CORE_H
 #include <stddef.h>
 #include <string.h>
+#include <stdint.h>
 /* Record indices in Sora's 0x58-byte weapon table. Combat fields begin at
    +0x20, interleaved with a four-byte cosmetic sound ID at +0x34. */
 static const int tm_rows[] = {0,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21};
@@ -23,6 +24,14 @@ static const char *const tm_models[] = {
 #define TM_SOUND_OFFSET 0x34
 #define TM_SOUND_SIZE 4
 #define TM_COSMETIC_SIZE (TM_MODEL_SIZE+TM_SOUND_SIZE)
+#define TM_IDLE_MS 300
+/* Animation ID is a DWORD: state 0 alone also includes swings and combos. */
+static int tm_animation_idle(uint32_t animation) { return animation==0; }
+static int tm_idle_gate(int idle, uint64_t now, uint64_t *since, int *tracking) {
+    if (!idle) { *tracking=0;return 0; }
+    if (!*tracking) { *since=now;*tracking=1;return 0; }
+    return now-*since>=TM_IDLE_MS;
+}
 static int tm_index_for_row(int row) {
     for (int i = 0; i < TM_COUNT; ++i) if (tm_rows[i] == row) return i;
     return -1;

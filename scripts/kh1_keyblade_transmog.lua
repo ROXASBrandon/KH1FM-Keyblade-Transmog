@@ -1,4 +1,4 @@
--- Keyblade Transmog preview 0.1.3; Steam Global 1.0.0.2 / LuaBackend.
+-- Keyblade Transmog preview 0.1.12; Steam Global 1.0.0.2 / LuaBackend.
 -- Native helper runs input and asynchronous model refresh on game's frame thread.
 LUAGUI_NAME = "Keyblade Transmog (Q)"
 LUAGUI_AUTH = "ROXASBrandon"

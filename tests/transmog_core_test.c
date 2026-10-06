@@ -41,5 +41,19 @@ int main(void) {
     assert(!tm_key_edge(1,1,&held));assert(!tm_key_edge(0,1,&held));
     assert(tm_key_edge(1,1,&held));
     assert(tm_index_for_row(1)==-1 && tm_index_for_row(4)==-1 && tm_index_for_row(22)==-1);
+    uint64_t since=0;int tracking=0;
+    assert(tm_animation_idle(0));
+    for (uint32_t anim=1;anim<512;++anim)assert(!tm_animation_idle(anim));
+    assert(!tm_animation_idle(0x10000));
+    assert(!tm_idle_gate(1,1000,&since,&tracking));
+    assert(!tm_idle_gate(1,1299,&since,&tracking));
+    assert(tm_idle_gate(1,1300,&since,&tracking));
+    /* Busy swings reset readiness. Spammed presses cannot consume stale idle. */
+    assert(!tm_idle_gate(0,1301,&since,&tracking));
+    for(int n=0;n<100;++n)assert(!tm_idle_gate(0,1302+n,&since,&tracking));
+    assert(!tm_idle_gate(1,1500,&since,&tracking));
+    assert(!tm_idle_gate(1,1799,&since,&tracking));
+    assert(tm_idle_gate(1,1800,&since,&tracking));
+    puts("PASS: full-width animation guard and stable idle window after swings/spam.");
     puts("PASS: all 324 model/sound combinations, every combat byte unchanged, exact restoration, cycle wrap, held Q, out-of-gameplay input.");
 }
