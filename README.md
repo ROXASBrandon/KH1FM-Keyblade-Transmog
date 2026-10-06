@@ -1,6 +1,6 @@
 # Keyblade Transmog
 
-![Keyblade Transmog banner](images/banner.svg)
+![Sora seamlessly cycling Keyblades — Keyblade Transmog animated gameplay banner](images/banner.gif)
 
 [Download v0.1.3 preview](https://github.com/ROXASBrandon/KH1FM-Keyblade-Transmog/raw/refs/heads/main/downloads/Keyblade-Transmog-v0.1.3-preview.zip) · [Report a bug](https://github.com/ROXASBrandon/KH1FM-Keyblade-Transmog/issues)
 

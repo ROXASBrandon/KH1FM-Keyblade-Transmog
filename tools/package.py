@@ -6,8 +6,9 @@ import sys
 import zipfile
 
 ROOT=Path(__file__).resolve().parents[1]
-subprocess.run([sys.executable,str(ROOT/'native/build.py')],check=True)
-files=['images/banner.svg','mod.yml','README.md','CREDITS.md','CHANGELOG.md',
+if '--skip-build' not in sys.argv:
+    subprocess.run([sys.executable,str(ROOT/'native/build.py')],check=True)
+files=['images/banner.gif','mod.yml','README.md','CREDITS.md','CHANGELOG.md',
        'scripts/kh1_keyblade_transmog.lua','scripts/io_packages/kh1_transmog.dll',
        'native/kh1_transmog.c','native/transmog_core.h','native/build.py',
        'tests/transmog_core_test.c','tests/transmog_native_test.c']
