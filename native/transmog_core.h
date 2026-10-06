@@ -2,7 +2,8 @@
 #define TRANSMOG_CORE_H
 #include <stddef.h>
 #include <string.h>
-/* Record indices in Sora's 0x58-byte weapon table. Stats begin at +0x20. */
+/* Record indices in Sora's 0x58-byte weapon table. Combat fields begin at
+   +0x20, interleaved with a four-byte cosmetic sound ID at +0x34. */
 static const int tm_rows[] = {0,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21};
 static const char *const tm_names[] = {
     "Kingdom Key", "Jungle King", "Three Wishes", "Fairy Harp", "Pumpkinhead",
@@ -19,6 +20,9 @@ static const char *const tm_models[] = {
 #define TM_COUNT 18
 #define TM_STRIDE 0x58
 #define TM_MODEL_SIZE 0x20
+#define TM_SOUND_OFFSET 0x34
+#define TM_SOUND_SIZE 4
+#define TM_COSMETIC_SIZE (TM_MODEL_SIZE+TM_SOUND_SIZE)
 static int tm_index_for_row(int row) {
     for (int i = 0; i < TM_COUNT; ++i) if (tm_rows[i] == row) return i;
     return -1;
@@ -33,17 +37,17 @@ static int tm_key_edge(int down, int eligible, int *was_down) {
     *was_down = down;
     return edge && eligible;
 }
-static void tm_copy_model(unsigned char *record, const unsigned char *model) {
-    memcpy(record, model, TM_MODEL_SIZE);
+/* Copy only cosmetic fields; never copy the intervening combat parameters. */
+static void tm_capture_cosmetic(unsigned char *cosmetic, const unsigned char *record) {
+    memcpy(cosmetic,record,TM_MODEL_SIZE);
+    memcpy(cosmetic+TM_MODEL_SIZE,record+TM_SOUND_OFFSET,TM_SOUND_SIZE);
 }
-/* Sound IDs remain equipped. Both vanilla .se loaders must use that row's
-   original name even while its .wpn name is overridden. */
-static const char *tm_sound_model(const char *model, const unsigned char *table_base,
-                                 const unsigned char originals[TM_COUNT][TM_MODEL_SIZE], int captured) {
-    if (captured)
-        for (int i=0;i<TM_COUNT;++i)
-            if (model==(const char *)(table_base+tm_rows[i]*TM_STRIDE))
-                return (const char *)originals[i];
-    return model;
+static void tm_copy_cosmetic(unsigned char *record, const unsigned char *cosmetic) {
+    memcpy(record,cosmetic,TM_MODEL_SIZE);
+    memcpy(record+TM_SOUND_OFFSET,cosmetic+TM_MODEL_SIZE,TM_SOUND_SIZE);
+}
+static int tm_cosmetic_matches(const unsigned char *record, const unsigned char *cosmetic) {
+    return !memcmp(record,cosmetic,TM_MODEL_SIZE)
+        && !memcmp(record+TM_SOUND_OFFSET,cosmetic+TM_MODEL_SIZE,TM_SOUND_SIZE);
 }
 #endif

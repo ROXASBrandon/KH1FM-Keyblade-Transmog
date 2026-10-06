@@ -7,62 +7,12 @@
 
 static uintptr_t game;
 static int enabled, failed, captured, selected = -1, was_q;
-static unsigned char originals[TM_COUNT][TM_MODEL_SIZE], applied[TM_MODEL_SIZE];
+static unsigned char originals[TM_COUNT][TM_COSMETIC_SIZE], applied[TM_COSMETIC_SIZE];
 static uintptr_t table;
 static ULONGLONG last_swap;
 typedef uint64_t (__cdecl *FrameProc)(void *);
 static FrameProc original_frame;
 typedef void (__fastcall *EquipProc)(int, void *);
-typedef int (__cdecl *FormatProc)(char *, const char *, const char *, const char *);
-
-static int __cdecl format_sound_name(char *dest, const char *format,
-                                    const char *model, const char *extension) {
-    return ((FormatProc)(game+0x51260))(dest,format,
-        tm_sound_model(model,(const unsigned char *)table,originals,captured),extension);
-}
-static int install_sound_hooks(void) {
-    /* These two calls format .se filenames: direct re-equip and room loading.
-       Leave the later .wpn formatter and every sound-ID/stat field untouched. */
-    const uintptr_t sites[]={game+0x286CCC,game+0x2871DA};
-    unsigned char *relay=NULL;
-    uintptr_t cursor=game,limit=game+0x70000000;
-    while (cursor<limit) {
-        MEMORY_BASIC_INFORMATION m;
-        if (!VirtualQuery((void *)cursor,&m,sizeof(m))) break;
-        uintptr_t end=(uintptr_t)m.BaseAddress+m.RegionSize;
-        if (end<=cursor) break;
-        uintptr_t candidate=(cursor+0xFFFF)&~(uintptr_t)0xFFFF;
-        if (m.State==MEM_FREE && candidate<limit && candidate<=end && end-candidate>=0x1000) {
-            relay=VirtualAlloc((void *)candidate,0x1000,MEM_RESERVE|MEM_COMMIT,PAGE_READWRITE);
-            if (relay) break;
-        }
-        cursor=end;
-    }
-    if (!relay) return 0;
-    /* mov rax, function; jmp rax. CALL at each site retains its return address. */
-    relay[0]=0x48;relay[1]=0xB8;
-    uintptr_t target=(uintptr_t)&format_sound_name;
-    memcpy(relay+2,&target,sizeof(target));relay[10]=0xFF;relay[11]=0xE0;
-    DWORD relay_protection,protection[2];
-    if (!VirtualProtect(relay,0x1000,PAGE_EXECUTE_READ,&relay_protection)) {
-        VirtualFree(relay,0,MEM_RELEASE);return 0;
-    }
-    FlushInstructionCache(GetCurrentProcess(),relay,12);
-    for (int i=0;i<2;++i) {
-        if (!VirtualProtect((void *)sites[i],5,PAGE_EXECUTE_READWRITE,&protection[i])) {
-            for (int j=0;j<i;++j) {DWORD ignored;VirtualProtect((void *)sites[j],5,protection[j],&ignored);}
-            VirtualFree(relay,0,MEM_RELEASE);return 0;
-        }
-    }
-    for (int i=0;i<2;++i) {
-        int32_t displacement=(int32_t)((intptr_t)relay-(intptr_t)(sites[i]+5));
-        memcpy((void *)(sites[i]+1),&displacement,4);
-        FlushInstructionCache(GetCurrentProcess(),(void *)sites[i],5);
-    }
-    for (int i=1;i>=0;--i) {DWORD ignored;VirtualProtect((void *)sites[i],5,protection[i],&ignored);}
-    return 1;
-}
-
 static void log_message(const char *text) {
     printf("[Keyblade Transmog] %s\n", text); fflush(stdout);
 }
@@ -79,15 +29,13 @@ static int signature_ok(void) {
     static const unsigned char frame_sig[] = {0x48,0x89,0x35,0xFF,0x44,0x0D,0x02,0x48,0x8B,0xC6};
     static const unsigned char equip_sig[] = {0x48,0x89,0x5C,0x24,0x18,0x55,0x56,0x41,0x56,0x48,0x83,0xEC,0x20,0x4C,0x8B,0xF2};
     static const unsigned char item_sig[] = {0x8D,0x41,0xFF,0x48,0x63,0xC8,0x48,0x8B,0x05,0xBB,0x33,0xA9,0x02};
-    static const unsigned char sound_equip_sig[] = {0xE8,0x8F,0xA5,0xDC,0xFF};
-    static const unsigned char sound_room_sig[] = {0xE8,0x81,0xA0,0xDC,0xFF};
+    static const unsigned char sound_sig[] = {0x48,0x8B,0x48,0x20,0x8B,0x49,0x34,0x03,0xCE};
     return *(unsigned char *)(game+0x4698D2)==106
         && *(uint32_t *)(game+0x3EA388)==540680280
         && bytes_at(0xD6A12,frame_sig,sizeof(frame_sig))
         && bytes_at(0x286720,equip_sig,sizeof(equip_sig))
         && bytes_at(0x28F970,item_sig,sizeof(item_sig))
-        && bytes_at(0x286CCC,sound_equip_sig,sizeof(sound_equip_sig))
-        && bytes_at(0x2871DA,sound_room_sig,sizeof(sound_room_sig));
+        && bytes_at(0x2954E9,sound_sig,sizeof(sound_sig));
 }
 static int capture_table(void) {
     uintptr_t save = *(uintptr_t *)(game + 0x2868BA0);
@@ -100,16 +48,16 @@ static int capture_table(void) {
         if (memcmp(record,tm_models[i],11)) return 0;
     }
     for (int i=0;i<TM_COUNT;++i)
-        memcpy(originals[i],(void *)(table+tm_rows[i]*TM_STRIDE),TM_MODEL_SIZE);
+        tm_capture_cosmetic(originals[i],(const unsigned char *)(table+tm_rows[i]*TM_STRIDE));
     captured=1;
-    log_message("Ready. Q cycles 18 Keyblade looks; Shift+Q restores equipped look. Combat stats stay equipped.");
+    log_message("Ready. Q cycles 18 Keyblade looks and hit sounds; Shift+Q restores equipped look/sounds. Combat stats stay equipped.");
     return 1;
 }
 static void restore_records(void) {
     for (int i=0;i<TM_COUNT;++i) {
         unsigned char *record=(unsigned char *)(table+tm_rows[i]*TM_STRIDE);
-        if (readable((uintptr_t)record,TM_MODEL_SIZE) && !memcmp(record,applied,TM_MODEL_SIZE))
-            tm_copy_model(record,originals[i]);
+        if (readable((uintptr_t)record,TM_SOUND_OFFSET+TM_SOUND_SIZE) && tm_cosmetic_matches(record,applied))
+            tm_copy_cosmetic(record,originals[i]);
     }
 }
 static int equipped_row(int *item_out) {
@@ -144,15 +92,15 @@ static void apply_model(void) {
     if (selected<0) return;
     for (int i=0;i<TM_COUNT;++i) {
         unsigned char *dest=(unsigned char *)(table+tm_rows[i]*TM_STRIDE);
-        if (memcmp(dest,originals[i],TM_MODEL_SIZE)) {
+        if (!tm_cosmetic_matches(dest,originals[i])) {
             selected=-1;
-            log_message("Weapon model table changed by another mod; cosmetic override stopped.");
+            log_message("Weapon model/sound table changed by another mod; cosmetic override stopped.");
             return;
         }
     }
-    memcpy(applied,originals[selected],TM_MODEL_SIZE);
+    memcpy(applied,originals[selected],TM_COSMETIC_SIZE);
     for (int i=0;i<TM_COUNT;++i)
-        tm_copy_model((unsigned char *)(table+tm_rows[i]*TM_STRIDE),applied);
+        tm_copy_cosmetic((unsigned char *)(table+tm_rows[i]*TM_STRIDE),applied);
 }
 static void tick(void) {
     int down=(GetAsyncKeyState('Q')&0x8000)!=0;
@@ -176,7 +124,7 @@ static void tick(void) {
     ((EquipProc)(game+0x286720))(item,NULL);
     last_swap=GetTickCount64();
     char text[160];
-    snprintf(text,sizeof(text),"Appearance: %s. Equipped item ID stays %d.",
+    snprintf(text,sizeof(text),"Appearance/hit sounds: %s. Equipped item ID stays %d.",
         selected<0?"Original":tm_names[selected],item);
     log_message(text);
 }
@@ -207,10 +155,6 @@ __declspec(dllexport) int __cdecl kh1_transmog_bootstrap(void *lua_state) {
         (LPCWSTR)(uintptr_t)&on_frame,&pinned)) {
         VirtualProtect(entry,sizeof(*entry),protection,&protection);
         failed=1;log_message("Cannot pin helper; disabled.");return 0;
-    }
-    if (!install_sound_hooks()) {
-        VirtualProtect(entry,sizeof(*entry),protection,&protection);
-        failed=1;log_message("Cannot install sound-name hooks; disabled.");return 0;
     }
     original_frame=(FrameProc)InterlockedExchangePointer((PVOID volatile *)entry,(PVOID)&on_frame);
     VirtualProtect(entry,sizeof(*entry),protection,&protection);

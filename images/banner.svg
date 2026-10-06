@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="540" viewBox="0 0 1600 540" role="img" aria-labelledby="title desc">
-<title id="title">Keyblade Transmog</title><desc id="desc">Change your look. Keep your equipped weapon's power. Q cycles appearances; Shift and Q restore.</desc>
+<title id="title">Keyblade Transmog</title><desc id="desc">Change your look. Keep your equipped weapon's power. Q cycles appearances and hit sounds; Shift and Q restore.</desc>
 <defs>
 <linearGradient id="bg" x2="1" y2="1"><stop stop-color="#071322"/><stop offset=".55" stop-color="#142542"/><stop offset="1" stop-color="#281b44"/></linearGradient>
 <linearGradient id="blade"><stop stop-color="#9be7ff"/><stop offset="1" stop-color="#f1f9ff"/></linearGradient>
@@ -13,7 +13,7 @@
 <text x="66" y="323" fill="#f4f8ff" font-family="Arial,sans-serif" font-size="78" font-weight="700">TRANSMOG</text>
 <text x="70" y="373" fill="#b7c9e3" font-family="Arial,sans-serif" font-size="27">Change your look. Keep your power.</text>
 <rect x="70" y="421" width="52" height="46" rx="9" fill="#243951" stroke="#7fa5cb"/><text x="96" y="453" text-anchor="middle" fill="#eff8ff" font-family="Arial,sans-serif" font-size="25" font-weight="700">Q</text>
-<text x="141" y="452" fill="#d7e5f6" font-family="Arial,sans-serif" font-size="22">18 appearances</text><text x="385" y="452" fill="#a7bcda" font-family="Arial,sans-serif" font-size="22">Shift + Q restores</text>
+<text x="141" y="452" fill="#d7e5f6" font-family="Arial,sans-serif" font-size="22">18 looks + hit sounds</text><text x="410" y="452" fill="#a7bcda" font-family="Arial,sans-serif" font-size="22">Shift + Q restores</text>
 <g transform="translate(1080 95) rotate(24 95 180)" fill="none" stroke-linejoin="round">
 <path d="M92 305V46H156V73H132V99H92" stroke="url(#blade)" stroke-width="22"/>
 <rect x="49" y="299" width="85" height="85" rx="30" stroke="#ebc17b" stroke-width="17"/>

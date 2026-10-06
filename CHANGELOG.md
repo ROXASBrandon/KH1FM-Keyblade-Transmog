@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.1.3 — cosmetic hit sounds
+
+- Selected appearance now supplies both model and hit sounds: load its sound
+  bank and copy only its four-byte hit-sound base ID alongside the model name.
+- Preserve all combat fields, including damage, MP, reach, and critical behavior.
+- Shift+Q restores the equipped weapon's original model and hit sounds.
+- Remove the 0.1.2 sound-filename hooks; use vanilla model/sound loading directly.
+- Native Windows regression tests cover all 324 equipped/appearance pairs,
+  exact reset, stat-only mods, and competing cosmetic edits.
+- Audio verification after a normal game restart is still pending.
+
 ## 0.1.2 — equipped hit-sound preservation
 
 - Keep original equipped Keyblade sound-bank names in both vanilla sound-loading

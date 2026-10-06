@@ -18,8 +18,8 @@ with tempfile.TemporaryDirectory(prefix='kh1-transmog-') as temp:
     subprocess.run(cc+['-O2','-I',str(NATIVE),str(TEST),'-o',str(test)],check=True)
     subprocess.run([str(test)],check=True)
     if os.name=='nt':
-        sound_test=TEST.with_name('transmog_sound_hook_test.c')
-        hook_test=Path(temp)/'sound-hook-test.exe'
+        sound_test=TEST.with_name('transmog_native_test.c')
+        hook_test=Path(temp)/'native-test.exe'
         subprocess.run(cc+['-O2','-I',str(NATIVE),str(sound_test),'-o',str(hook_test),
                           '-luser32','-lkernel32'],check=True)
         subprocess.run([str(hook_test)],check=True)

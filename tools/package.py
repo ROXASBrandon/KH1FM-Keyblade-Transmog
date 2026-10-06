@@ -10,10 +10,10 @@ subprocess.run([sys.executable,str(ROOT/'native/build.py')],check=True)
 files=['images/banner.svg','mod.yml','README.md','CREDITS.md','CHANGELOG.md',
        'scripts/kh1_keyblade_transmog.lua','scripts/io_packages/kh1_transmog.dll',
        'native/kh1_transmog.c','native/transmog_core.h','native/build.py',
-       'tests/transmog_core_test.c','tests/transmog_sound_hook_test.c']
+       'tests/transmog_core_test.c','tests/transmog_native_test.c']
 output=ROOT/'downloads'
 output.mkdir(exist_ok=True)
-archive=output/'Keyblade-Transmog-v0.1.2-preview.zip'
+archive=output/'Keyblade-Transmog-v0.1.3-preview.zip'
 with zipfile.ZipFile(archive,'w',compression=zipfile.ZIP_DEFLATED) as z:
     for name in files:
         payload=(ROOT/name).read_bytes()

@@ -1,8 +1,8 @@
--- Keyblade Transmog preview 0.1.2; Steam Global 1.0.0.2 / LuaBackend.
+-- Keyblade Transmog preview 0.1.3; Steam Global 1.0.0.2 / LuaBackend.
 -- Native helper runs input and asynchronous model refresh on game's frame thread.
 LUAGUI_NAME = "Keyblade Transmog (Q)"
 LUAGUI_AUTH = "ROXASBrandon"
-LUAGUI_DESC = "Q cycles cosmetic Keyblade models; equipped stats stay unchanged. Shift+Q resets."
+LUAGUI_DESC = "Q cycles Keyblade looks and hit sounds; equipped stats stay unchanged. Shift+Q resets."
 local bootstrap
 function _OnInit()
     bootstrap = nil
