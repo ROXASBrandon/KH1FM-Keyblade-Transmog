@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="540" viewBox="0 0 1600 540" role="img" aria-labelledby="title desc">
+<title id="title">Keyblade Transmog</title><desc id="desc">Change your look. Keep your equipped weapon's power. Q cycles appearances; Shift and Q restore.</desc>
+<defs>
+<linearGradient id="bg" x2="1" y2="1"><stop stop-color="#071322"/><stop offset=".55" stop-color="#142542"/><stop offset="1" stop-color="#281b44"/></linearGradient>
+<linearGradient id="blade"><stop stop-color="#9be7ff"/><stop offset="1" stop-color="#f1f9ff"/></linearGradient>
+<radialGradient id="light"><stop stop-color="#6ca8ef" stop-opacity=".3"/><stop offset="1" stop-color="#6ca8ef" stop-opacity="0"/></radialGradient>
+<pattern id="grid" width="64" height="64" patternUnits="userSpaceOnUse"><path d="M64 0H0V64" fill="none" stroke="#b9d8ff" stroke-opacity=".045"/></pattern>
+</defs>
+<rect width="1600" height="540" rx="24" fill="url(#bg)"/><rect width="1600" height="540" fill="url(#grid)"/>
+<ellipse cx="1270" cy="235" rx="380" ry="310" fill="url(#light)"/>
+<path d="M70 76H310" stroke="#eac279" stroke-width="3"/><text x="70" y="112" fill="#eac279" font-family="Arial,sans-serif" font-size="20" letter-spacing="5">KINGDOM HEARTS FINAL MIX</text>
+<text x="66" y="234" fill="#f4f8ff" font-family="Arial,sans-serif" font-size="78" font-weight="700">KEYBLADE</text>
+<text x="66" y="323" fill="#f4f8ff" font-family="Arial,sans-serif" font-size="78" font-weight="700">TRANSMOG</text>
+<text x="70" y="373" fill="#b7c9e3" font-family="Arial,sans-serif" font-size="27">Change your look. Keep your power.</text>
+<rect x="70" y="421" width="52" height="46" rx="9" fill="#243951" stroke="#7fa5cb"/><text x="96" y="453" text-anchor="middle" fill="#eff8ff" font-family="Arial,sans-serif" font-size="25" font-weight="700">Q</text>
+<text x="141" y="452" fill="#d7e5f6" font-family="Arial,sans-serif" font-size="22">18 appearances</text><text x="385" y="452" fill="#a7bcda" font-family="Arial,sans-serif" font-size="22">Shift + Q restores</text>
+<g transform="translate(1080 95) rotate(24 95 180)" fill="none" stroke-linejoin="round">
+<path d="M92 305V46H156V73H132V99H92" stroke="url(#blade)" stroke-width="22"/>
+<rect x="49" y="299" width="85" height="85" rx="30" stroke="#ebc17b" stroke-width="17"/>
+<path d="M61 329H123M91 342V378" stroke="#d2a660" stroke-width="10"/>
+<path d="M94 386V421L114 441L94 461L74 441Z" stroke="#9fb5d2" stroke-width="7"/>
+</g>
+<g transform="translate(1280 69) rotate(-20 90 185)" fill="none" stroke="#baa7ed" stroke-linejoin="round">
+<path d="M91 315V74L72 45L91 13L110 45L91 74M91 86L133 106L149 84L169 111L154 136L91 121" stroke-width="17"/>
+<path d="M40 316L91 291L142 316L129 373L91 391L53 373Z" stroke-width="13"/>
+<path d="M91 321V372M65 330H117" stroke-width="8"/>
+</g>
+<path d="M1216 255h54m-16-16 16 16-16 16" fill="none" stroke="#eac279" stroke-width="4"/>
+<text x="1518" y="491" text-anchor="end" fill="#7f97b9" font-family="Arial,sans-serif" font-size="17" letter-spacing="2">ROXASBRANDON · PREVIEW</text>
+</svg>
