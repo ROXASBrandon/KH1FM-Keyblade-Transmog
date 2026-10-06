@@ -102,9 +102,9 @@ at `scripts/io_packages/kh1_transmog.dll`. Windows also runs the native
 capture/apply/restore integration test. This works from Windows or Linux/WSL.
 Building does not install files into the game.
 
-## Related mods
+## My other mods
 
 - [Treasure Magnet Starter](https://github.com/ROXASBrandon/KH1FM-Treasure-Magnet-Starter) — early unlock, zero AP.
-- [Treasure Magnet Vacuum](https://github.com/ROXASBrandon/KH1FM-Treasure-Magnet-Vacuum) — expanded pickup range.
+- [Treasure Magnet Vacuum](https://github.com/ROXASBrandon/KH1FM-Treasure-Magnet-Vacuum) — 500x pickup range for items and HP/MP/munny orbs.
 
 See [credits](CREDITS.md) and [changelog](CHANGELOG.md).
