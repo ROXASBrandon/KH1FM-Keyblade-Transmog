@@ -2,9 +2,12 @@
 
 ![Sora seamlessly cycling Keyblades — Keyblade Transmog animated gameplay banner](images/banner.gif)
 
-[Download v0.2.0-p7 preview](https://github.com/ROXASBrandon/KH1FM-Keyblade-Transmog/releases/download/v0.2.0-p7/Keyblade-Transmog-v0.2.0-p7-preview.zip) · [Report a bug](https://github.com/ROXASBrandon/KH1FM-Keyblade-Transmog/issues) · [GitHub Release](https://github.com/ROXASBrandon/KH1FM-Keyblade-Transmog/releases/tag/v0.2.0-p7)
+[Download p8 compatibility preview](downloads/Keyblade-Transmog-v0.2.0-p8-preview.zip) · [Report a bug](https://github.com/ROXASBrandon/KH1FM-Keyblade-Transmog/issues) · [GitHub Release](https://github.com/ROXASBrandon/KH1FM-Keyblade-Transmog/releases/tag/v0.2.0-p7)
 
-**Version 0.2.0-p7 preview — ROXASBrandon**
+**Version 0.2.0-p8 compatibility preview — ROXASBrandon**
+
+Supports the exact Keyblade of Heart v0.1.5 replacement alongside vanilla weapons.
+The release link above points to the published p7 base; the p8 ZIP is included in this update. The author confirmed p8 and Heart v0.1.5 work together in gameplay.
 
 Press **Q** to instantly cycle all 18 standard Final Mix Keyblade appearances,
 with matching new trails and weapon hit sounds. **Shift+Q** restores the equipped
@@ -12,8 +15,8 @@ blade's look, trails, and sounds. Your equipped weapon keeps its stats and abili
 
 This seamless preview passed the author's gameplay checks: all 18 appearances,
 battle switching and repeated Q presses, equipped stats/abilities, matching trails
-and hit sounds, chests, area transitions, death/retry, and Shift+Q reset. The shipped
-DLL is exactly the tested p7 build. Other PCs and OpenKH installation remain
+and hit sounds, chests, area transitions, death/retry, and Shift+Q reset. Those gameplay checks apply to the p7 base. p8 changes only asset compatibility
+validation; private-memory regression tests pass, and the author confirmed both mods work together in gameplay. Other PCs and OpenKH installation remain
 unverified.
 
 Requires **Kingdom Hearts Final Mix, Steam Global/WW 1.0.0.2**, and **LuaBackend**.
@@ -57,7 +60,7 @@ Choose **one** method:
 2. **Manual LuaBackend:** copy `scripts/kh1_keyblade_transmog.lua` to your KH1
    script folder, and `scripts/io_packages/kh1_transmog.dll` to its `io_packages`
    subfolder. Replace the previous Transmog pair and keep only one copy enabled.
-3. **OpenKH / downloaded ZIP:** [download the ready-to-import ZIP](https://github.com/ROXASBrandon/KH1FM-Keyblade-Transmog/releases/download/v0.2.0-p7/Keyblade-Transmog-v0.2.0-p7-preview.zip).
+3. **OpenKH / downloaded ZIP:** [download the p8 ZIP](downloads/Keyblade-Transmog-v0.2.0-p8-preview.zip).
    Select Kingdom Hearts 1, open **Mods > Install new mods** (or the **+** button),
    click **Select and install Mod Archive or Lua Script**, and select the downloaded
    ZIP **without extracting it**. Enable the imported mod, then **Mod Loader >
@@ -70,7 +73,7 @@ Choose **one** method:
 Use one install method. Restart KH1, load gameplay, and stand still briefly to
 start preloading. **Stay in the same area until ready.** F2 opens LuaBackend's
 console; progress shows `Preload 1/36` through `36/36`, then
-`[Seamless Prototype] Ready experimental 0.2.0-p7`.
+`[Seamless Prototype] Ready experimental 0.2.0-p8`.
 
 After readiness, tap Q to cycle or Shift+Q to reset. Early, unfocused, menu,
 cutscene, death, and transition presses are ignored rather than queued. Q input,
@@ -81,7 +84,8 @@ that action in the game's settings to avoid triggering both.
 ## Compatibility and limits
 
 - Only the supported Steam Global/WW 1.0.0.2 executable and vanilla weapon asset
-  layouts are supported. Modified Keyblade model/sound files are unsupported.
+  layouts are supported, plus the exact Heart v0.1.5 weapon replacement in p8.
+  Other replacement mods may fail validation and prevent switching.
 - Dream weapons, Wooden Sword, special story equipment, and gummi are excluded.
   Native visibility and scripted props remain under the game's control.
 - Initial preloading makes at most 36 native file requests per process. A scene
@@ -129,3 +133,24 @@ build. `native/generate_headers.py` regenerates that metadata from a local extra
 - [Treasure Magnet Vacuum](https://github.com/ROXASBrandon/KH1FM-Treasure-Magnet-Vacuum) — 500x pickup range for items and HP/MP/munny orbs.
 
 See [credits](CREDITS.md).
+
+## Keyblade of Heart compatibility
+
+p8 accepts vanilla weapon headers as before. Kingdom Key additionally accepts
+the exact Heart v0.1.5 asset through full SHA-256 verification before native
+initialization, plus expected headers, bounds, effect layout, and resource checks.
+Other Keyblade model replacements may fail preload and disable switching.
+Only vanilla assets and this exact Heart version have supported profiles. With Heart enabled, the
+Kingdom Key appearance slot displays Heart and its effects; no new cycle slot is
+added. Stats and inventory stay tied to the equipped weapon.
+
+Windows source tests require the Heart payload fixture. Build with:
+
+```text
+python native/build.py PATH_TO_HEART_MOD/generated/xw_ex_5010.wpn
+python tools/package.py --skip-build
+```
+
+Companion: **Keyblade of Heart v0.1.5**. Its public mod page is being prepared;
+the two pages will link to each other before public release. Updating its weapon
+asset requires an updated compatibility fingerprint in Transmog.

@@ -8,15 +8,15 @@ import zipfile
 ROOT = Path(__file__).resolve().parents[1]
 if '--skip-build' not in sys.argv:
     subprocess.run([sys.executable, str(ROOT/'native/build.py')], check=True)
-files = ['images/banner.gif', 'mod.yml', 'README.md', 'CREDITS.md',
+files = ['images/banner.gif', 'images/banner.png', 'mod.yml', 'README.md', 'CREDITS.md',
          'CHANGELOG.md', 'DEVELOPMENT.md',
          'scripts/kh1_keyblade_transmog.lua', 'scripts/io_packages/kh1_transmog.dll',
-         'native/seamless.c', 'native/asset_headers.h', 'native/build.py',
+         'native/seamless.c', 'native/asset_headers.h', 'native/heart_profile.h', 'native/build.py',
          'native/generate_headers.py', 'tests/native_test.c',
          'tests/verify_executable.py', 'tools/package.py']
 output = ROOT/'downloads'
 output.mkdir(exist_ok=True)
-archive = output/'Keyblade-Transmog-v0.2.0-p7-preview.zip'
+archive = output/'Keyblade-Transmog-v0.2.0-p8-preview.zip'
 for name in files:
     payload = (ROOT/name).read_bytes()
     for private in ('/'+'mnt/', 'Users'+'/', 'Users'+chr(92)):

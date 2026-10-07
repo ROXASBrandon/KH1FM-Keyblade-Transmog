@@ -4,7 +4,7 @@ description: >
   Q instantly cycles 18 cosmetic Keyblade models, new trails and matching hit sounds,
   retaining equipped weapon stats and abilities. Shift+Q restores the equipped look.
   Retains selection through area changes and death/retry.
-  Steam Global 1.0.0.2 and LuaBackend required. Preview 0.2.0-p7.
+  Steam Global 1.0.0.2 and LuaBackend required. Preview 0.2.0-p8; supports Keyblade of Heart 0.1.5 replacement.
 game: kh1
 assets:
   - name: scripts/kh1_keyblade_transmog.lua

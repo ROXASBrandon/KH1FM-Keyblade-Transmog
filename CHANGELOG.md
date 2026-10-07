@@ -153,3 +153,18 @@
 - Equipped item and combat parameters remain the stat source.
 - Native keyboard polling and model refresh run through the game frame callback.
 - Preview pending live gameplay verification.
+
+## Local 0.2.0-p8 compatibility preview
+
+Adds an explicit exact-file SHA-256 profile for Heart 0.1.5 at Kingdom Key
+slot 0. Retains vanilla profiles and all ownership, bounds, effect, and lifetime
+checks. Cache records remember which profile passed before native initialization;
+post-initialization checks use the corresponding immutable header and size.
+Fingerprinting uses Windows CNG SHA-256. Hashing is only performed on custom
+preload completion, never in render/frame paths.
+
+Native tests accept the exact asset, reject wrong slots, truncation, header
+changes, and payload changes, then run the Heart asset through all 36 preloads,
+18 cached render/effect slots, sound remaps, reset, transitions, death/retry,
+and existing failure cases. Executable/vanilla metadata checks passed.
+The author subsequently confirmed both mods work together in gameplay.

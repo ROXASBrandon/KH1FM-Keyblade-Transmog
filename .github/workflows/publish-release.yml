@@ -1,9 +1,6 @@
 name: Publish OpenKH ZIP Release
 on:
   workflow_dispatch:
-  push:
-    branches: [main]
-    paths: [.github/workflows/publish-release.yml]
 permissions:
   contents: write
 concurrency:
@@ -20,7 +17,7 @@ jobs:
         run: |
           python3 - <<'PY'
           import os, json, hashlib, urllib.request, urllib.error, urllib.parse
-          META = {'tag': 'v0.2.0-p7', 'name': 'Keyblade Transmog v0.2.0-p7 — Seamless Preview', 'prerelease': True, 'archive': 'Keyblade-Transmog-v0.2.0-p7-preview.zip', 'checksum': 'Keyblade-Transmog-SHA256SUMS.txt', 'zip_sha256': '68331784829735501704c2de680bb6b16d66aaafa109c8da87a21dcae9acb66f', 'body': "Seamless all-18 Keyblade transmog preview, gameplay-tested on the author's setup. Q switches cosmetic models, new trails and hit sounds while equipped stats/abilities stay intact; Shift+Q resets. Retains the look through chests, area changes and death/retry. Includes exact tested p7 native helper (build 2007). Other PCs and OpenKH installation remain unverified.\n\nRequires Kingdom Hearts Final Mix Steam Global/WW 1.0.0.2 and LuaBackend.\n\nDownload the attached ZIP (not the automatically generated source archives). In OpenKH Mods Manager select KH1, open Mods > Install new mods, choose Select and install Mod Archive or Lua Script, and select the ZIP without extracting it. Enable the mod, then Build and Run.\n\nManual LuaBackend installation and GitHub installation are also documented in the README. Close KH1 before replacing files; keep only one copy enabled. SHA256 checksums are attached."}
+          META = {'tag': 'v0.2.0-p8', 'name': 'Keyblade Transmog 0.2.0-p8 compatibility preview', 'prerelease': True, 'archive': 'Keyblade-Transmog-v0.2.0-p8-preview.zip', 'checksum': 'Keyblade-Transmog-SHA256SUMS.txt', 'zip_sha256': 'f004cc4ae5cde269d28bbe33004649ecddbfa2234ed749922c9b8961bb385fe4', 'body': 'Supports exact Keyblade of Heart v0.1.5 replacement. Other replacement mods may fail validation. Author confirmed both together; native regression tests passed. Close KH1 before updating, then Build and Run.'}
           repo = os.environ['GITHUB_REPOSITORY']
           sha = os.environ['GITHUB_SHA']
           token = os.environ['GH_TOKEN']

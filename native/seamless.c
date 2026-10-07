@@ -1,10 +1,12 @@
 /* Experimental graphics/effects/sound prototype, Steam Global 1.0.0.2. */
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#include <bcrypt.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <string.h>
 #include "asset_headers.h"
+#include "heart_profile.h"
 
 enum { WAITING, LOADING, READY, INVALIDATED, FAILED, SUSPENDED };
 typedef void *(__fastcall *ResolveProc)(uint32_t);
@@ -35,11 +37,11 @@ static uintptr_t owner_actor;
 static uint32_t owner_model;
 static ULONGLONG idle_since,load_started;
 static int idle_tracking;
-struct Cached {uintptr_t raw,model,draw,resource;uint32_t bytes;int index;uintptr_t effects;};
+struct Cached {uintptr_t raw,model,draw,resource;uint32_t bytes;int index;uintptr_t effects;int profile;};
 static struct Cached cached[MODEL_COUNT];
 struct SoundCached {uintptr_t raw,resource;uint32_t bytes;int index,bank;};
 static struct SoundCached sounds[MODEL_COUNT];
-__declspec(dllexport) volatile uint32_t kh1_transmog_build=2007;
+__declspec(dllexport) volatile uint32_t kh1_transmog_build=2008;
 __declspec(dllexport) volatile uint32_t seamless_phase=WAITING;
 __declspec(dllexport) volatile uint32_t seamless_ready_mask;
 __declspec(dllexport) volatile uint32_t seamless_swaps;
@@ -106,13 +108,37 @@ static int context_valid(void) {
     return a==owner_actor && readable(a,0x150) && u32(a+0x130)==owner_model &&
         !*(unsigned char *)(game+0x22EC0AC) && *(unsigned char *)(game+0x2D5CC4C)>0;
 }
+/* Vanilla checks remain unchanged. Only index 0 can use this exact custom file.
+   Hash before native initialization, which replaces relative offsets with handles. */
+static int heart_hash_matches(const void *data,uint32_t size) {
+    BCRYPT_ALG_HANDLE alg=NULL;BCRYPT_HASH_HANDLE hash=NULL;unsigned char digest[32];int ok=0;
+    if (BCryptOpenAlgorithmProvider(&alg,BCRYPT_SHA256_ALGORITHM,NULL,0)<0) return 0;
+    if (BCryptCreateHash(alg,&hash,NULL,0,NULL,0,0)>=0 &&
+        BCryptHashData(hash,(PUCHAR)data,size,0)>=0 &&
+        BCryptFinishHash(hash,digest,sizeof(digest),0)>=0)
+        ok=!memcmp(digest,heart_sha256,sizeof(digest));
+    if (hash) BCryptDestroyHash(hash);
+    BCryptCloseAlgorithmProvider(alg,0);return ok;
+}
+static int weapon_profile(int index,int size,uintptr_t raw) {
+    if (index<0 || index>=MODEL_COUNT || size<56 || !readable(raw,(size_t)size)) return -1;
+    if (size==(int)expected_size[index] && !memcmp((void *)raw,expected_wpn[index],16)) return 0;
+    if (index==0 && size==(int)heart_size && !memcmp((void *)raw,heart_wpn,16) &&
+        heart_hash_matches((void *)raw,(uint32_t)size)) return 1;
+    return -1;
+}
+static const unsigned char *profile_header(int index,int profile) {
+    return profile==1 && index==0?heart_wpn:expected_wpn[index];
+}
 static int cached_valid(const struct Cached *c) {
     /* Registry membership is checked before dereferencing borrowed graphics.
        Comparing the original resource record prevents reuse after unload. */
     return c->raw && (uintptr_t)resource_for((void *)c->raw,0)==c->resource &&
         readable(c->raw,c->bytes) && within(c->draw,0x20,c->raw,c->bytes) &&
         within(c->model,0x38,c->raw,c->bytes) &&
-        c->index>=0 && c->index<MODEL_COUNT && !memcmp((void *)c->raw,expected_wpn[c->index],16) &&
+        c->index>=0 && c->index<MODEL_COUNT && (c->profile==0 || (c->profile==1 && c->index==0)) &&
+        c->bytes==(c->profile?heart_size:expected_size[c->index]) &&
+        !memcmp((void *)c->raw,profile_header(c->index,c->profile),16) &&
         u32(c->model)==0x564E454D && (uintptr_t)resolve(u32(c->model+0x20))==c->draw &&
         u32(c->draw+0x10)==0x96969696 && within(c->effects,16,c->raw,c->bytes) &&
         !memcmp((void *)c->effects,expected_effect[c->index],16);
@@ -186,7 +212,7 @@ static int effect_layout(uintptr_t raw,uint32_t size,uint32_t offset,uint32_t en
 static void ready_if_complete(void) {
     if (seamless_ready_mask==ALL_MODELS_MASK && seamless_sound_ready_mask==ALL_MODELS_MASK) {
         seamless_phase=READY;
-        report("Ready experimental 0.2.0-p7: Q cycles all 18 Keyblade graphics, new trails and hit sounds; Shift+Q resets.");
+        report("Ready experimental 0.2.0-p8: Q cycles all 18 Keyblade graphics, new trails and hit sounds; Shift+Q resets.");
     }
 }
 static void __fastcall sound_ready(void *user) {
@@ -222,12 +248,13 @@ static void __fastcall loaded(int size,int id,void *data) {
             stop_cache(1,"Native sound preload failed; disabled.");
         return;
     }
-    if (size!=(int)expected_size[index] || !readable(raw,(size_t)size) ||
-        memcmp(data,expected_wpn[index],16)) {
+    int profile=weapon_profile(index,size,raw);
+    if (profile<0) {
+        seamless_failure_reason=4;
         stop_cache(1,"Unexpected weapon asset; vanilla rendering retained.");return;
     }
     uint32_t offset=u32(raw+8);
-    if (offset>(uint32_t)size-56 || memcmp((void *)(raw+offset),expected_model[index],56)) {
+    if (offset>(uint32_t)size-56 || memcmp((void *)(raw+offset),profile?heart_model:expected_model[index],56)) {
         stop_cache(1,"Unsupported weapon geometry header; vanilla rendering retained.");return;
     }
     uintptr_t resource=(uintptr_t)resource_for(data,0);
@@ -242,7 +269,7 @@ static void __fastcall loaded(int size,int id,void *data) {
     init_model((void *)model);
     init_effect((void *)(raw+effect_offset));
     uintptr_t draw=(uintptr_t)resolve(u32(model+0x20));
-    cached[index]=(struct Cached){raw,model,draw,resource,(uint32_t)size,index,raw+effect_offset};
+    cached[index]=(struct Cached){raw,model,draw,resource,(uint32_t)size,index,raw+effect_offset,profile};
     if (!cached_valid(&cached[index])) {
         stop_cache(1,"PC graphics registration incomplete; vanilla rendering retained.");return;
     }
@@ -476,5 +503,5 @@ __declspec(dllexport) int __cdecl kh1_transmog_bootstrap(void *lua_state) {
     }
     original_frame=(FrameProc)InterlockedExchangePointer((PVOID volatile *)slot,(PVOID)&on_frame);
     DWORD unused;VirtualProtect(slot,8,old,&unused);enabled=1;
-    report("Experimental 0.2.0-p7 graphics/effect/sound hooks installed. Waiting for idle gameplay.");return 0;
+    report("Experimental 0.2.0-p8 graphics/effect/sound hooks installed. Waiting for idle gameplay.");return 0;
 }
