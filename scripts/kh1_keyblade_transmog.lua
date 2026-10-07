@@ -1,23 +1,18 @@
--- Keyblade Transmog preview 0.1.12; Steam Global 1.0.0.2 / LuaBackend.
--- Native helper runs input and asynchronous model refresh on game's frame thread.
-LUAGUI_NAME = "Keyblade Transmog (Q)"
+-- Experimental 0.2.0-p7: all 18 Keyblade graphics/effects/sound prototype.
+LUAGUI_NAME = "Keyblade Transmog - Seamless Prototype"
 LUAGUI_AUTH = "ROXASBrandon"
-LUAGUI_DESC = "Q cycles Keyblade looks and hit sounds; equipped stats stay unchanged. Shift+Q resets."
+LUAGUI_DESC = "Q toggles 18 preloaded looks, new trails and hit sounds; Shift+Q resets. Retains look across areas and death/retry."
 local bootstrap
 function _OnInit()
     bootstrap = nil
-    if GAME_ID ~= 0xAF71841E or ENGINE_TYPE ~= "BACKEND" then
-        ConsolePrint("Keyblade Transmog: KH1 LuaBackend required; disabled.")
-        return
-    end
+    if GAME_ID ~= 0xAF71841E or ENGINE_TYPE ~= "BACKEND" then return end
     if ReadByte(0x4698D2) ~= 106 or ReadInt(0x3EA388) ~= 540680280 then
-        ConsolePrint("Keyblade Transmog: unsupported game version; disabled.")
+        ConsolePrint("Seamless prototype: unsupported game build.")
         return
     end
-    local path = SCRIPT_PATH .. "/io_packages/kh1_transmog.dll"
-    local loader, reason = package.loadlib(path, "kh1_transmog_bootstrap")
+    local loader, reason = package.loadlib(SCRIPT_PATH .. "/io_packages/kh1_transmog.dll", "kh1_transmog_bootstrap")
     if not loader then
-        ConsolePrint("Keyblade Transmog: helper missing/unloadable; disabled. " .. tostring(reason))
+        ConsolePrint("Seamless prototype: helper unavailable: " .. tostring(reason))
         return
     end
     bootstrap = loader

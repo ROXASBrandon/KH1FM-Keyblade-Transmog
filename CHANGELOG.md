@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.2.0-p7 — seamless all-18 preview
+
+- Preload all 18 cosmetic model/effect banks and 18 independent audio banks once.
+- Replace reload-based switching with render submission substitution. The equipped
+  weapon remains attached; combat fields and native pause masks remain unchanged.
+- Allow instant switching during swings and battle. Held Q does not cycle;
+  Shift+Q restores the equipped appearance and effects.
+- Redirect new trails and the 35 blade-specific hit variants to the selected blade.
+  Preserve native shared swing clips, companions, and unsupported sound variants.
+- Keep cosmetic rendering during chest events and visible area fade-in without
+  waiting for HUD/input readiness. Native hidden blades stay hidden.
+- Preserve selection and rebind the current Sora actor after area changes and
+  death/retry. Validate live resources and PC audio ownership even when death
+  clears KH sound bookkeeping slots.
+- Final gameplay checks passed on the author's setup, including all appearances,
+  battle Q spam, chests, transitions, death/retry, and Shift+Q reset. Other PCs
+  and OpenKH installation remain unverified; this remains a preview.
+- Ship the exact tested p7 DLL (native build 2007). Keep the 0.1.12 download
+  available for rollback.
+
 ## 0.1.12 — drain companion audio queue and submit room geometry
 
 - Fix a captured battle reload deadlock: sound-bank installation waits for the

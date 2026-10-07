@@ -1,186 +1,181 @@
-# Development and release checks
+# Seamless graphics/effects/sound implementation
 
-Use Python 3 and `ziglang==0.16.0`. Run `python native/build.py` to test the
-cosmetic logic and build the Windows x64 DLL. Windows builds also run the
-native capture/apply/reset integration test against isolated memory; the
-test never opens or patches a game process.
+The stable helper invalidates the native cache and calls 0x286720. That releases
+weapon graphics and clears actor +0x14C before asynchronously attaching a new
+weapon. The seamless experiment avoids that routine entirely.
 
-To inspect the supported executable locally, install `pefile`, then run
-`python tests/verify_transmog_executable.py <KH1.exe> <extracted-KH1-assets>`.
-Executable signatures, vanilla sound loaders, the four-byte sound-ID reader, item metadata, and
-all 18 model/sound-bank/35-hit-ID sets must match. These proprietary files are not distributed.
+## Asset loading and ownership
 
-Before updating downloads, run `python tools/package.py`. The package uses
-an explicit file list, checks for private paths, runs ZIP integrity checks,
-and writes the SHA-256 checksum alongside the preview ZIP.
+Native loader 0x28BC10 creates a file task. A NULL destination follows the native
+allocation path in 0x28C390; the completion callback receives byte count in ECX,
+request ID in EDX and the loaded buffer in R8 (0x28C35C..0x28C366). Loading still
+runs through normal application frames. No file task is manually pumped.
 
-## Gameplay status
+The callback requires exact supported vanilla WPN and MENV header prefixes and
+file sizes. It verifies native resource registration through 0xE2B20 before
+calling the same model initializer used by vanilla WPN completion: 0x1D6750.
+MENV +0x20 becomes the graphics handle. PC initialization at 0x1DC7F0 looks up
+file-relative HD metadata and creates a wrapper marked by 0x96969696 at mesh
++0x10; this marker is required before accepting the cache.
 
-- Confirmed: Q appearance cycling and room-transition persistence.
-- Live inspection: equipped Jungle King remained equipped with another model;
-  all weapon parameter bytes after the filename matched the original checksum.
-- Automated: all 324 equipped/appearance model and sound-ID combinations, unchanged
-  combat fields, restoration, input edge detection, and Windows native
-  capture/apply/reset behavior.
-- Pending: clean restart on 0.1.10, restored hit audio, Shift+Q, other equipped
-  weapons, death/continue, fresh OpenKH install, removal, and another PC.
+The engine owns the loaded buffers and their registered metadata. Cached assets
+are borrowed only while the original registry record is present, headers and
+graphics handle still match, and the original actor/model context remains valid.
+This experiment makes only 36 requests and never retries, frees, or reuses a
+stale cache. On room/actor changes it suspends overrides and retains the selected index.
+After gameplay and a standard weapon attachment settle for 500 ms on the new
+actor/model, both cached assets are validated before rebinding. There are no
+additional file requests. If either resource unloads, it disables until restart.
+Initial preload interruptions still disable; late callbacks cannot initialize
+assets against a different actor.
 
-Keep this build labeled preview until those gameplay checks pass. A compiled
-or synthetic-test result does not establish audible in-game behavior.
+## Draw substitution
 
-## Empty-hand attack regression
+The five-byte CALL at 0x2A1A08 targets 0x1D6510, which jumps to 0x1D4070. Its
+arguments are actor model instance, matrices, render packet and actor pointer.
+The packet's weapon-graphics pointer is +0x18, assembled at 0x2A180F. The renderer
+copies that pointer into a draw record at 0x1D4D0A..0x1D4D0E; cached resources must
+outlive the call. A hook replaces only that field for Sora while calling the
+original renderer and restores the local packet immediately afterward. The
+actor's weapon handle and every byte of its actual weapon record are untouched.
 
-The local dumps record access violations at 0x2A7700 (attack writes weapon
-+0x41) and 0x29346F (command-menu cleanup writes weapon +0x42). Both have a
-null weapon. The cosmetic equip routine clears Sora +0x14C before asynchronous
-attachment. Actor bit 2 does not stop command-menu cleanup, so 0.1.4/0.1.5
-are not crash fixes. Weapon +0x41 is a persistent hit counter, not readiness.
+A NULL native packet weapon pointer remains NULL. The helper never forces a
+weapon into a native hidden state. No scheduler or Present call is patched.
+The original frame always executes. A modified stable-helper scheduler call is
+rejected to prevent accidentally running both helpers together.
 
-Version 0.1.6 held the whole application frame and manually pumped asset jobs.
-Live inspection of the freeze showed a detached weapon, loader state 3, pending
-file tasks and no worker job. Resource dependencies still needed normal frames.
-That approach is removed.
+## Verification boundary
 
-Version 0.1.7 always calls the normal application frame. During an owned reload,
-it sets bit 0 of the native gameplay task mask at 0x2867370. The native scheduler
-at 0x284690 reads it at 0x2846AB; the task filter at 0x28A750 excludes tasks whose
-flags lack that mask. Native pause flows at 0x17F2CC use this same mask. The
-command-menu task is created with flags 0 and is excluded while paused.
-
-Windows fixtures emulate 324 reloads: application callbacks and load progression
-continue while gameplay tasks remain excluded. The pause bit is released after
-a valid attached weapon and initialized graphics, preserving other mask bits.
-This is still a fixture, not a live proof. Check Q, attack/cleanup, frame progress,
-sounds, room transitions and reset before publication.
-
-## Mid-swing Q regression
-
-The latest dump faults at 0x2A76A9 while reading weapon +0x50 through a null
-pointer. Broad actor action state +0x70 remains zero during attacks, so that
-guard alone was insufficient. Native idle paths compare the DWORD animation
-ID at actor +0x164 to zero. Version 0.1.8 requires this idle ID, clear native
-action-eligibility flags, and 300 ms of uninterrupted readiness. Busy Q edges
-are consumed rather than queued. Synthetic tests reject nonzero full-width
-animation IDs and reset the idle timer on any busy frame. Live reproduction
-remains pending; live sampling confirmed idle animation 0 and attack 200.
-
-## Native pause overwrite regression
-
-Version 0.1.8 still crashed at 0x2A7700. Live inspection confirms that the
-player pointer matches the guarded actor; the actor slot can change between
-sessions. Read-only swing sampling confirmed idle ID 0 and attack ID 200.
-
-The normal frame calls pause handling at 0x170FC2 and the native scheduler at
-0x170FD0. Pause handling writes the mask at 0x17F4AE, after our frame hook and
-before task iteration. The early mask could therefore be erased. Version
-0.1.9 hooks the five-byte call at 0x2846B9, passing mask | 1 to the original
-0x28A710 only during a pending cosmetic reload. The native mask global remains
-untouched. The rel32 call reaches an execute/read relay allocated near the
-executable; both hooks remain pinned until exit. Unsupported or competing
-call-site modifications disable installation before any swap.
-
-Live task inspection confirms actor update (0x298940) and command cleanup
-(0x2937F0) both have task flags 0, so the final mask excludes both. Loading and
-service tasks retain 0xFFFF flags and continue. Regression fixtures clear the
-early global before every scheduler invocation, emulate 324 delayed reloads,
-preserve unrelated mask bits, and execute the real patched rel32 call/relay
-in private test memory. Exported build, swap and paused-scheduler counters allow
-read-only verification of the installed helper. Gameplay retesting is pending.
-
-## Black-frame regression
-
-Live 0.1.9 diagnostics recorded 24 swaps and 145 protected scheduler invocations.
-The user reported no crashes during that test, but black flashes between swaps.
-The scheduler mask also excludes scene-related tasks; application frames still
-presented the resulting incomplete scene. Version 0.1.10 retains the same reload
-protection and hooks only the two presentation call sites at 0x104941 and
-0x10497A, both `call [rax+0xB0]`. These invoke IDXGISwapChain1::Present1 through
-vtable slot 22 with the swap-chain pointer, interval, flags and parameters.
-See [Microsoft's Present1 reference](https://learn.microsoft.com/en-us/windows/win32/api/dxgi1_2/nf-dxgi1_2-idxgiswapchain1-present1).
-
-During pending reloads, display calls return S_OK without presenting a blank
-frame; DXGI_PRESENT_TEST status queries still call the original method. The
-last displayed frame stays visible until attachment completes. This keeps the
-brief pause rather than re-enabling unsafe gameplay tasks. Both call hooks use
-the same sealed near relay as the scheduler hook. All signatures and page
-protections are validated before mutation, and shared-page protections are
-restored only after every call is patched. Native fixtures execute both actual
-patched call sites, verify argument/HRESULT forwarding, held presentations,
-status-query passthrough, resumption, and original execute/read page protection.
-Live black-flash and repeated-swap testing remain pending.
-
-## Withdrawal of 0.1.10
-
-The next live run crashed at 0x10AA29, a null read of mapped graphics timing
-data after a graphics query. The call stack includes presentation bookkeeping
-(0x104AC8). This is a different path from the weapon null-pointer reports.
-Skipping Present1 while the engine continued its GPU bookkeeping was unsafe.
-The installed helper and prepared source now match the exact 0.1.9 archive;
-presentation hooks are removed. Its DLL hash matches the pre-0.1.10 backup.
-The withdrawn archive/source/dump are retained privately for diagnosis.
-Black-frame removal remains unresolved, and 0.1.9 is still a preview.
-
-## 0.1.11 camera/model allowlist
-
-The native model task wrapper at 0x2A23E0 iterates the model task group. Its
-per-object callback at 0x2A1320 submits a rendering callback; the mesh assembly
-path at 0x2A1630 resolves actor +0x14C at 0x2A17D3 and checks for null at
-0x2A17D8 before the weapon fields are read. Missing weapons take 0x2A1850,
-setting the weapon graphics pointer to null while continuing body submission.
-The camera task at 0x28CC10 copies camera matrices and calls 0x18C620 to copy
-renderer state. Its task is also excluded by the blanket reload mask.
-
-Version 0.1.11 keeps the original scheduler reload mask, temporarily adding
-bit 0 only to these two task records for one scheduler invocation. The original
-iterator preserves task ordering and all native mask bits. After it returns,
-the helper clears only its owned bit when the node still has the same callback.
-Traversal is bounded at 256 nodes and eight owned records; unreadable or unknown
-tasks never enter the allowlist. Pre-existing task bits remain unchanged.
-No Present1 call is patched or suppressed. The likely black-frame cause is
-missing camera/model submission; final visual behavior requires live testing.
-
-Native fixtures emulate 324 delayed loads: camera/model submission and service
-callbacks run, while actor, command-cleanup and unknown callbacks remain blocked
-until attachment. Tests verify flag restoration and preservation of native
-pause masks and pre-existing bits. Executable checks verify both task signatures
-and the native missing-weapon branch. These checks do not establish live visuals.
+Private-memory Windows fixtures test 4,096 alternating draw substitutions,
+unchanged attached weapon data and pause state, packet restoration, actual rel32
+call/relay execution and ABI forwarding, 36 asynchronous loads, held/busy and
+unfocused inputs, mid-swing input, Shift+Q, stale resource rejection, scene suspension/rebinding and retained selection/reset,
+wrong callbacks, bad headers/sizes, missing ownership and timeout fallback.
+Static checks validate the executable call chain and the two installed vanilla
+asset headers. These do not prove final textures, geometry, frame pacing, resource
+lifetime during live rendering or in-battle stability.
 
 
-## 0.1.12 captured audio dependency and room submission
+## Cosmetic effects and audio (p4)
 
-The 0.1.11 battle freeze was captured with the loader at flags 3, Sora's weapon
-handle zero, no file requests, and one sound-install task at stage 0. The native
-audio queue at 0x2D371D0 had a companion-owned record at stage 4. Sound callback
-0x296480 calls 0x178A30, which first calls 0x290050. That helper checks the four
-queue records and reports busy until each stage byte becomes zero. The queue
-updater 0x290A50 had task flags 0 and was excluded by the reload mask, so this
-dependency could never complete. Allowing that updater lets native sound work
-progress without enabling actor or command-cleanup callbacks. Its code uses
-actor model/sound references; it does not access the detached weapon handle.
+Vanilla WPN completion initializes its effect section (raw + DWORD +4) with
+0x1E0080 after model initialization. p4 follows that order, validates the nine
+supported entries and section offsets, and retains the bank under the same
+native resource ownership checks as its geometry. The calls at 0x2BB3E9 and
+0x2C2015 target 0x2AE290(actor, bank, effect). Only Sora, only the actual weapon
+bank, and only effect IDs present in the selected bank are redirected. The
+native effect system owns new effect instances. Existing effects are allowed
+to finish; p4 never deletes an active trail during a swing.
 
-Actors remained visible in the captured freeze, but the room disappeared. The
-room task at 0xD2830 was also excluded. Its native call chain copies scene state,
-runs 0x182230 for scene matrix setup, and calls 0x182250 -> 0x19B4F0 to assemble
-room geometry. It also updates room texture groups and background music. The
-allowlist now includes this task, retaining normal engine submission and GPU
-presentation. It does not enable room scripts, actor simulation, attack logic,
-command cleanup, or other unknown tasks. Temporary bits still follow original
-node order and are restored after the scheduler returns.
+Eighteen extra native file requests preload one .se file for each cosmetic blade. Bank
+installation uses 0x296040 and its normal scheduler/audio completion callback.
+Groups 0x6F00..0x6F11 must be absent from KH's bank table at 0x2D53AB0 and the PC
+audio registry rooted at 0x4D65D8. Native equipped/companion groups -3/-4/-5 are
+untouched. Readiness requires all 35 expected blade-specific PC clips to be registered for each
+cosmetic group. There is no polling loop, manual audio task pump or gameplay pause.
 
-Private native fixtures now model the captured dependency: without the audio
-allowance the queue remains busy and attachment cannot complete, even while
-service tasks run; with the allowance the queue drains and 324 delayed loads
-finish. Camera/model/room callbacks run while attack/cleanup/unknown callbacks
-stay excluded. Executable checks verify the queue-busy call chain and the room
-submission calls. These fixtures do not prove live battle stability or visuals.
+The two sound-base CALLs at 0x2954F2 and 0x29619E target 0x2961F0(sound ID, tag).
+Their caller holds the actor in RDI or RSI. Dedicated relay prefixes copy that
+actor into volatile R8 before jumping to the callback; nonvolatile registers
+and native return values are preserved. The callback reads the equipped sound
+base, preserves variants 0..34 and playback tag, then chooses the selected cosmetic base from the 18-entry supported weapon table only while that PC sound clip is still registered. Companions,
+reset state, unsupported variants, missing clips and unrelated banks pass through.
+No actual weapon record, parameter row or save record is written by these hooks.
+
+Fixtures execute all five real rel32 relays, including actor extraction, test
+630 sound variants, unsupported/stale/companion fallback, independent bank
+collision refusal, asynchronous audio readiness and malformed effect layouts.
+These checks do not prove audible playback, visible trails, native bank lifetime
+across gameplay or stability in the real game; p4 remains private until live tests.
 
 
-## Final 0.1.12 gameplay validation — 2026-10-06
+## Chest/event rendering
 
-The author reported stable battle swaps and then confirmed all final checks
-passed: cycling all 18 appearances in battle; equipping a different Keyblade
-while retaining its stats/abilities; Shift+Q reset; room transitions; save/reload;
-a fresh restart; and matching hit sounds. The remaining brief gameplay pause
-during a swap is intentional while native model/sound loading completes. These
-reports supersede the earlier pending-validation notes for the current build.
-They do not establish compatibility on other PCs or OpenKH installation.
+p2 used the same gameplay gate for input and display. Live state during the
+reported reversion had cutscene byte 2, HUD float 0, and a standard weapon still
+attached; that gate dropped the draw substitution. p4 uses a separate display
+gate: the current bound actor/model, a validated native attachment, a standard
+Sora parameter row (0 or 5..21) and a non-NULL submitted weapon pointer. HUD,
+event/menu and cutscene flags continue to block Q and cosmetic sound/effect
+hooks, but do not revert an otherwise valid visible blade. Warp/actor changes,
+nonstandard event weapons and gummi still pass through. Fixtures cover this
+separation; the actual chest animation still needs live confirmation.
+
+
+## Native sound-bank layout correction (p4)
+
+p3 incorrectly required 40 contiguous sound-base variants. Live inspection
+showed Kingdom Key's native group has 35 hits at 0x2B10..0x2B32 plus five shared
+swing clips at 0x2B0A..0x2B0E. Jungle King similarly retains those same shared
+clips plus hits at 0x2CA0..0x2CC2. p4 requires the 35 hit variants; it leaves the
+shared swing sounds untouched. Fixtures now use this observed layout and cover
+variants 35..39 as pass-through. Sound readiness failures expose separate
+scene/ownership/missing-clip reason codes through seamless_failure_reason.
+
+
+## All-18 expansion (p5)
+
+MODEL_COUNT and ALL_MODELS_MASK cover all 18 standard appearances. Preload
+progress is bounded to 36 file requests: the 18 WPN model/effect banks, then
+18 independent sound banks. Each completion sets its own bit, and READY is
+entered only after both 18-bit masks are complete. The final bank therefore
+cannot be skipped through a hardcoded two-blade completion condition.
+
+Every room recovery revalidates all 36 borrowed resources before enabling draws.
+Q advances modulo 18; Shift+Q resets the cosmetic index without changing actual
+equipment. Cosmetic bases match the live vanilla table for all 18 rows. Header
+metadata can be regenerated with generate_headers.py from a local extraction;
+no full game assets are copied into the project or package.
+
+All-18 fixtures validate ordered asynchronous requests, mask completion,
+three complete Q cycles and wraparound, 4,096 render substitutions, 630 hit
+variants, all 18 effect banks, chest/event rendering, native ABI relays,
+scene recovery and unloaded/malformed/companion fallback. Static checks cover
+all 18 WPN/SE pairs. Full live preload, all-18 visuals/effects and battle behavior
+remain unverified until gameplay testing; the confirmed p4 pair is preserved.
+
+
+## Death/retry resource ownership correction (p6)
+
+p5 live death/retry cleared KH sound bookkeeping slots at 0x2D53AB0 while
+all 18 WPN sources, all 18 SE sources, and the private PC audio groups remained
+registered. The old slot check therefore permanently disabled a valid cache.
+p6 validates SE headers, size, original resource ownership, and all 35 actual
+hit clips in the PC audio registry instead. Sound dispatch still checks its
+individual clip. Group reservation still checks both registries, so a cleared
+KH slot cannot permit replacement of an existing private audio group.
+
+The death fixture clears all KH bookkeeping slots, replaces Sora's actor, and
+checks retained appearance, sound and trails after recovery with no additional
+file requests. Missing resources and missing clips still disable recovery.
+Live death/retry confirmation remains required. No saves are changed.
+
+
+## Transition display continuity (p7)
+
+The p6 READY phase waited for normal gameplay (including HUD visibility) and
+500 ms of settled attachment before restoring rendering. Visible arrival
+frames could therefore show the equipped blade while input recovery waited.
+p7 allows render-only substitution in READY or SUSPENDED for the currently
+published Sora actor, with readable actor/type, positive HP, standard equipment,
+validated native attachment and cached resource, and a non-NULL submitted
+weapon. It never dereferences the old bound actor. It does not change the
+settle timer, input, trail or sound gates, or force native hidden blades visible.
+
+Fixtures cover new-actor draws with warp active and HUD hidden, old-actor
+submissions, hidden packets, zero HP, death/retry and missing resources.
+Live area fade-in confirmation remains required.
+
+
+## Published p7 validation
+
+The author confirmed all final gameplay checks for p7: all 18 appearances,
+battle Q spam, equipped stats/abilities, trails/hit sounds, chests, area
+transitions without the equipped-blade flash, death/retry, and Shift+Q reset.
+Earlier pending-live notes above record the development sequence; these checks
+now passed on the author's setup. Other PCs and OpenKH installation remain
+unverified. The public ZIP preserves the exact installed p7 DLL, build 2007.
+
+The earlier 0.1.12 reload implementation is preserved in Git history and its
+previous download. The active source and manifest use only the seamless helper;
+do not load both versions in one process.
