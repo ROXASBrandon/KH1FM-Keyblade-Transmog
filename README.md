@@ -2,7 +2,7 @@
 
 ![Sora cycling Keyblade appearances in gameplay](images/banner.gif)
 
-[Download](https://github.com/ROXASBrandon/KH1FM-Keyblade-Transmog/releases/latest) · [Report a bug](https://github.com/ROXASBrandon/KH1FM-Keyblade-Transmog/issues)
+[Download on Nexus Mods](https://www.nexusmods.com/kingdomheartsfinalmix/mods/260) · [GitHub Release](https://github.com/ROXASBrandon/KH1FM-Keyblade-Transmog/releases/latest) · [Report a bug](https://github.com/ROXASBrandon/KH1FM-Keyblade-Transmog/issues)
 
 Press **Q** to instantly cycle through **18 Keyblade appearances**, with matching trails and hit sounds, while keeping your equipped weapon's stats and abilities. **Shift+Q** restores its original look.
 
@@ -47,7 +47,7 @@ Choose **one** method below. Close Kingdom Hearts normally before installing or 
 
 ### OpenKH Mods Manager — downloaded ZIP
 
-1. Download the mod ZIP from the **Files** tab on its Nexus Mods page or from [GitHub Releases](https://github.com/ROXASBrandon/KH1FM-Keyblade-Transmog/releases/latest).
+1. Download the mod ZIP from the **Files** tab on [Nexus Mods](https://www.nexusmods.com/kingdomheartsfinalmix/mods/260) or from [GitHub Releases](https://github.com/ROXASBrandon/KH1FM-Keyblade-Transmog/releases/latest).
 2. Open **OpenKH Mods Manager** and select **Kingdom Hearts 1**.
 3. Open **Mods > Install new mods** or click **+**.
 4. Choose **Select and install Mod Archive or Lua Script**, then select the downloaded ZIP **without extracting it**.
