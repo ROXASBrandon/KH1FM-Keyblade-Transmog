@@ -2,7 +2,7 @@
 
 ![Sora seamlessly cycling Keyblades — Keyblade Transmog animated gameplay banner](images/banner.gif)
 
-[Download v0.2.0-p7 preview](https://github.com/ROXASBrandon/KH1FM-Keyblade-Transmog/raw/refs/heads/main/downloads/Keyblade-Transmog-v0.2.0-p7-preview.zip) · [Report a bug](https://github.com/ROXASBrandon/KH1FM-Keyblade-Transmog/issues)
+[Download v0.2.0-p7 preview](https://github.com/ROXASBrandon/KH1FM-Keyblade-Transmog/releases/download/v0.2.0-p7/Keyblade-Transmog-v0.2.0-p7-preview.zip) · [Report a bug](https://github.com/ROXASBrandon/KH1FM-Keyblade-Transmog/issues) · [GitHub Release](https://github.com/ROXASBrandon/KH1FM-Keyblade-Transmog/releases/tag/v0.2.0-p7)
 
 **Version 0.2.0-p7 preview — ROXASBrandon**
 
@@ -57,7 +57,7 @@ Choose **one** method:
 2. **Manual LuaBackend:** copy `scripts/kh1_keyblade_transmog.lua` to your KH1
    script folder, and `scripts/io_packages/kh1_transmog.dll` to its `io_packages`
    subfolder. Replace the previous Transmog pair and keep only one copy enabled.
-3. **OpenKH / downloaded ZIP:** [download the ready-to-import ZIP](https://github.com/ROXASBrandon/KH1FM-Keyblade-Transmog/raw/refs/heads/main/downloads/Keyblade-Transmog-v0.2.0-p7-preview.zip).
+3. **OpenKH / downloaded ZIP:** [download the ready-to-import ZIP](https://github.com/ROXASBrandon/KH1FM-Keyblade-Transmog/releases/download/v0.2.0-p7/Keyblade-Transmog-v0.2.0-p7-preview.zip).
    Select Kingdom Hearts 1, open **Mods > Install new mods** (or the **+** button),
    click **Select and install Mod Archive or Lua Script**, and select the downloaded
    ZIP **without extracting it**. Enable the imported mod, then **Mod Loader >

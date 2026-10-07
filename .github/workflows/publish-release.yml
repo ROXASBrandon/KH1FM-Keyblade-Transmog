@@ -1,0 +1,66 @@
+name: Publish OpenKH ZIP Release
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: [.github/workflows/publish-release.yml]
+permissions:
+  contents: write
+concurrency:
+  group: publish-openkh-release
+  cancel-in-progress: false
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Verify ZIP, attach assets, and publish GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          python3 - <<'PY'
+          import os, json, hashlib, urllib.request, urllib.error, urllib.parse
+          META = {'tag': 'v0.2.0-p7', 'name': 'Keyblade Transmog v0.2.0-p7 — Seamless Preview', 'prerelease': True, 'archive': 'Keyblade-Transmog-v0.2.0-p7-preview.zip', 'checksum': 'Keyblade-Transmog-SHA256SUMS.txt', 'zip_sha256': '68331784829735501704c2de680bb6b16d66aaafa109c8da87a21dcae9acb66f', 'body': "Seamless all-18 Keyblade transmog preview, gameplay-tested on the author's setup. Q switches cosmetic models, new trails and hit sounds while equipped stats/abilities stay intact; Shift+Q resets. Retains the look through chests, area changes and death/retry. Includes exact tested p7 native helper (build 2007). Other PCs and OpenKH installation remain unverified.\n\nRequires Kingdom Hearts Final Mix Steam Global/WW 1.0.0.2 and LuaBackend.\n\nDownload the attached ZIP (not the automatically generated source archives). In OpenKH Mods Manager select KH1, open Mods > Install new mods, choose Select and install Mod Archive or Lua Script, and select the ZIP without extracting it. Enable the mod, then Build and Run.\n\nManual LuaBackend installation and GitHub installation are also documented in the README. Close KH1 before replacing files; keep only one copy enabled. SHA256 checksums are attached."}
+          repo = os.environ['GITHUB_REPOSITORY']
+          sha = os.environ['GITHUB_SHA']
+          token = os.environ['GH_TOKEN']
+          api = 'https://api.github.com/repos/'+repo
+          headers = {'Authorization': 'Bearer '+token, 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28', 'User-Agent': 'OpenKH-Mod-Release'}
+          def request(url, method='GET', data=None, content_type='application/json'):
+              payload = json.dumps(data).encode() if isinstance(data, dict) else data
+              req = urllib.request.Request(url, data=payload, method=method, headers={**headers, 'Content-Type': content_type})
+              with urllib.request.urlopen(req, timeout=120) as response:
+                  return json.load(response)
+          def raw(name):
+              url = 'https://raw.githubusercontent.com/'+repo+'/'+sha+'/downloads/'+urllib.parse.quote(name)
+              with urllib.request.urlopen(url, timeout=120) as response:
+                  return response.read()
+          zip_data = raw(META['archive'])
+          assert hashlib.sha256(zip_data).hexdigest() == META['zip_sha256'], 'ZIP checksum mismatch'
+          checksum_data = raw(META['checksum'])
+          assert (META['zip_sha256']+'  '+META['archive']).encode() in checksum_data, 'Checksum file mismatch'
+          try:
+              release = request(api+'/releases/tags/'+META['tag'])
+          except urllib.error.HTTPError as error:
+              if error.code != 404:
+                  raise
+              release = request(api+'/releases', 'POST', {'tag_name': META['tag'], 'target_commitish': sha, 'name': META['name'], 'body': META['body'], 'draft': True, 'prerelease': META['prerelease']})
+          existing = {asset['name']: asset for asset in release.get('assets', [])}
+          for name, data, kind in [(META['archive'], zip_data, 'application/zip'), (META['checksum'], checksum_data, 'text/plain')]:
+              digest = 'sha256:'+hashlib.sha256(data).hexdigest()
+              if name in existing:
+                  asset = existing[name]
+                  assert asset['state'] == 'uploaded' and asset['size'] == len(data) and asset.get('digest') == digest, 'Existing asset differs; refusing replacement'
+                  continue
+              assert release['draft'], 'Published release is missing an asset; refusing to modify it'
+              url = release['upload_url'].split('{', 1)[0]+'?'+urllib.parse.urlencode({'name': name})
+              asset = request(url, 'POST', data, kind)
+              assert asset['state'] == 'uploaded' and asset['size'] == len(data), 'Incomplete upload'
+              assert asset.get('digest') == digest, 'Uploaded asset checksum mismatch'
+          if release['draft']:
+              release = request(api+'/releases/'+str(release['id']), 'PATCH', {'draft': False, 'name': META['name'], 'body': META['body'], 'prerelease': META['prerelease']})
+          assert not release['draft']
+          print('Published '+release['html_url'])
+          with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
+              summary.write('## Release published\n'+release['html_url']+'\n\nZIP SHA256: `'+META['zip_sha256']+'`\n')
+          PY
