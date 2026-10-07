@@ -1,3 +1,4 @@
 dbd32ee579eb7fd6856bef8d37d882c1706834f42efde697a2c992f3917d1d57  Keyblade-Transmog-v0.1.12-preview.zip
 68331784829735501704c2de680bb6b16d66aaafa109c8da87a21dcae9acb66f  Keyblade-Transmog-v0.2.0-p7-preview.zip
-f004cc4ae5cde269d28bbe33004649ecddbfa2234ed749922c9b8961bb385fe4  Keyblade-Transmog-v0.2.0-p8-preview.zip
+76fbffd62ad996e625c8d44646f905c0244740b390fd6d39df973187b71f55fe  Keyblade-Transmog-v0.2.0-p8-preview.zip
+76fbffd62ad996e625c8d44646f905c0244740b390fd6d39df973187b71f55fe  Keyblade-Transmog.zip

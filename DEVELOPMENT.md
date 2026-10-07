@@ -194,3 +194,14 @@ changes, and payload changes, then run the Heart asset through all 36 preloads,
 18 cached render/effect slots, sound remaps, reset, transitions, death/retry,
 and existing failure cases. Executable/vanilla metadata checks passed.
 The author subsequently confirmed both mods work together in gameplay.
+
+## Building the supported Heart profile
+
+Windows regression tests require the companion Heart payload fixture:
+
+```text
+python native/build.py PATH_TO_HEART_MOD/generated/xw_ex_5010.wpn
+python tools/package.py --skip-build
+```
+
+Use Python 3 and ziglang 0.16.0. Linux/WSL cross-compiles the Windows helper; Windows also executes the native regression suite. The author confirmed clean OpenKH builds of each mod alone and both together.

@@ -1,6 +1,12 @@
 name: Publish OpenKH ZIP Release
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/publish-release.yml
+      - downloads/Keyblade-Transmog.zip
+      - downloads/Keyblade-Transmog-SHA256SUMS.txt
 permissions:
   contents: write
 concurrency:
@@ -17,7 +23,7 @@ jobs:
         run: |
           python3 - <<'PY'
           import os, json, hashlib, urllib.request, urllib.error, urllib.parse
-          META = {'tag': 'v0.2.0-p8', 'name': 'Keyblade Transmog 0.2.0-p8 compatibility preview', 'prerelease': True, 'archive': 'Keyblade-Transmog-v0.2.0-p8-preview.zip', 'checksum': 'Keyblade-Transmog-SHA256SUMS.txt', 'zip_sha256': 'f004cc4ae5cde269d28bbe33004649ecddbfa2234ed749922c9b8961bb385fe4', 'body': 'Supports exact Keyblade of Heart v0.1.5 replacement. Other replacement mods may fail validation. Author confirmed both together; native regression tests passed. Close KH1 before updating, then Build and Run.'}
+          META = {'tag': 'v0.2.0-p8', 'name': 'Keyblade Transmog', 'prerelease': False, 'archive': 'Keyblade-Transmog.zip', 'checksum': 'Keyblade-Transmog-SHA256SUMS.txt', 'zip_sha256': '76fbffd62ad996e625c8d44646f905c0244740b390fd6d39df973187b71f55fe', 'body': 'Keyblade Transmog — author-tested OpenKH ZIP. Compatible with Keyblade of Heart. Tested independently and together through Build and Run. Download the mod ZIP below; import it into OpenKH Mods Manager without extracting, enable it, and use Build and Run. Close KH1 normally before updating.'}
           repo = os.environ['GITHUB_REPOSITORY']
           sha = os.environ['GITHUB_SHA']
           token = os.environ['GH_TOKEN']
@@ -41,7 +47,7 @@ jobs:
           except urllib.error.HTTPError as error:
               if error.code != 404:
                   raise
-              release = request(api+'/releases', 'POST', {'tag_name': META['tag'], 'target_commitish': sha, 'name': META['name'], 'body': META['body'], 'draft': True, 'prerelease': META['prerelease']})
+              release = request(api+'/releases', 'POST', {'tag_name': META['tag'], 'target_commitish': sha, 'name': META['name'], 'body': META['body'], 'draft': True, 'prerelease': META['prerelease'], 'make_latest': 'true'})
           existing = {asset['name']: asset for asset in release.get('assets', [])}
           for name, data, kind in [(META['archive'], zip_data, 'application/zip'), (META['checksum'], checksum_data, 'text/plain')]:
               digest = 'sha256:'+hashlib.sha256(data).hexdigest()
@@ -55,7 +61,7 @@ jobs:
               assert asset['state'] == 'uploaded' and asset['size'] == len(data), 'Incomplete upload'
               assert asset.get('digest') == digest, 'Uploaded asset checksum mismatch'
           if release['draft']:
-              release = request(api+'/releases/'+str(release['id']), 'PATCH', {'draft': False, 'name': META['name'], 'body': META['body'], 'prerelease': META['prerelease']})
+              release = request(api+'/releases/'+str(release['id']), 'PATCH', {'draft': False, 'name': META['name'], 'body': META['body'], 'prerelease': META['prerelease'], 'make_latest': 'true'})
           assert not release['draft']
           print('Published '+release['html_url'])
           with open(os.environ['GITHUB_STEP_SUMMARY'], 'a') as summary:
