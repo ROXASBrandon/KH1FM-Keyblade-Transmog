@@ -33,17 +33,35 @@ With Keyblade of Heart enabled, the Kingdom Key appearance displays that replace
 
 Kingdom Hearts Final Mix on Steam, LuaBackend, and OpenKH Mods Manager with Panacea. See [development notes](DEVELOPMENT.md) for supported executable details.
 
-## Installation
+## Installation methods
 
-1. Download the mod ZIP from [Releases](https://github.com/ROXASBrandon/KH1FM-Keyblade-Transmog/releases/latest).
-2. Close Kingdom Hearts normally.
-3. Select **Kingdom Hearts 1** in OpenKH Mods Manager.
-4. Open **Mods > Install new mods** or click **+**, choose **Select and install Mod Archive or Lua Script**, and select the downloaded ZIP without extracting it.
-5. Enable **Keyblade Transmog (Q)**, then click **Build and Run**.
-6. Load gameplay and stay in the same area briefly while the appearances preload. Once ready, tap **Q** to switch.
+Choose **one** method below. Close Kingdom Hearts normally before installing or updating, and keep only one copy of this mod enabled.
 
-For updates, close the game, remove the previous imported copy, import the new ZIP, and rebuild. Keep one copy enabled. Restart the game after updating; script reload alone cannot replace the native helper.
+### OpenKH Mods Manager — GitHub
 
+1. Open **OpenKH Mods Manager** and select **Kingdom Hearts 1**.
+2. Open **Mods > Install new mods** or click **+**.
+3. Enter `ROXASBrandon/KH1FM-Keyblade-Transmog` in the GitHub field.
+4. Click **Install**, then enable **Keyblade Transmog (Q)**.
+5. Click **Mod Loader > Build and Run**.
+
+### OpenKH Mods Manager — downloaded ZIP
+
+1. Download the mod ZIP from the **Files** tab on its Nexus Mods page or from [GitHub Releases](https://github.com/ROXASBrandon/KH1FM-Keyblade-Transmog/releases/latest).
+2. Open **OpenKH Mods Manager** and select **Kingdom Hearts 1**.
+3. Open **Mods > Install new mods** or click **+**.
+4. Choose **Select and install Mod Archive or Lua Script**, then select the downloaded ZIP **without extracting it**.
+5. Enable **Keyblade Transmog (Q)**, then click **Mod Loader > Build and Run**.
+
+Load gameplay and stay in the same area briefly while appearances preload. Once ready, tap **Q** to switch.
+
+### Updating
+
+For a GitHub installation, close the game, use **Settings > Check Mods for Updates**, then rebuild and restart. For a ZIP installation, close the game, remove the previous imported copy, import the new ZIP, and rebuild.
+
+Restart after updating; reloading scripts alone cannot replace the native helper.
+
+[OpenKH installation guide](https://github.com/OpenKH/OpenKh/blob/master/docs/tool/GUI.ModsManager/index.md#installing-mods).
 ## Notes
 
 Selection lasts for the current game session and is not stored in your save. Restarting restores the equipped appearance. Holding Q does not repeatedly cycle. Switching waits for normal gameplay; menu, cutscene, death, and transition presses are ignored. Rebind any game action that also uses Q to avoid triggering both.
