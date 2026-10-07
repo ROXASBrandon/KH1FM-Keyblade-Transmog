@@ -48,13 +48,24 @@ restarting the game restores the equipped appearance.
 **Close KH1 normally before replacing the Lua script or native DLL.** Install both
 files together. F1 script reload cannot replace the pinned native helper.
 
-- **Manual LuaBackend:** copy `scripts/kh1_keyblade_transmog.lua` to your KH1 script
-  folder, and `scripts/io_packages/kh1_transmog.dll` to its `io_packages` subfolder.
-  Replace the previous Transmog pair. Keep only one copy enabled.
-- **OpenKH:** select KH1 in Mods Manager, choose **Mods > Install new mods**, and
-  enter `ROXASBrandon/KH1FM-Keyblade-Transmog`. Enable the mod and use **Mod Loader >
-  Build and Run**. Alternatively import the preview ZIP. For updates, check for mod
-  updates and rebuild after closing KH1. The manifest copies both required files.
+Choose **one** method:
+
+1. **OpenKH / GitHub:** select Kingdom Hearts 1 in Mods Manager, open **Mods >
+   Install new mods**, and enter `ROXASBrandon/KH1FM-Keyblade-Transmog` in the GitHub field.
+   Click **Install**, enable the mod, then **Mod Loader > Build and Run**.
+   For updates, use **Settings > Check Mods for Updates** and rebuild after closing KH1.
+2. **Manual LuaBackend:** copy `scripts/kh1_keyblade_transmog.lua` to your KH1
+   script folder, and `scripts/io_packages/kh1_transmog.dll` to its `io_packages`
+   subfolder. Replace the previous Transmog pair and keep only one copy enabled.
+3. **OpenKH / downloaded ZIP:** [download the ready-to-import ZIP](https://github.com/ROXASBrandon/KH1FM-Keyblade-Transmog/raw/refs/heads/main/downloads/Keyblade-Transmog-v0.2.0-p7-preview.zip).
+   Select Kingdom Hearts 1, open **Mods > Install new mods** (or the **+** button),
+   click **Select and install Mod Archive or Lua Script**, and select the downloaded
+   ZIP **without extracting it**. Enable the imported mod, then **Mod Loader >
+   Build and Run**. The ZIP contains `mod.yml` at its root and all required files.
+   For later ZIP updates, close KH1, remove the previous imported copy from Mods
+   Manager, import the new ZIP, and rebuild. Keep only one copy of this mod enabled.
+
+[OpenKH's official archive installation guide](https://github.com/OpenKH/OpenKh/blob/master/docs/tool/GUI.ModsManager/index.md#installing-mods).
 
 Use one install method. Restart KH1, load gameplay, and stand still briefly to
 start preloading. **Stay in the same area until ready.** F2 opens LuaBackend's

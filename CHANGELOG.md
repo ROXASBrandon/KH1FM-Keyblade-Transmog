@@ -1,5 +1,10 @@
 # Changelog
 
+## Distribution update — 2026-10-07
+
+- Document downloaded OpenKH ZIP import as the third installation method.
+- Refresh the ZIP documentation and checksum; tested p7 DLL and script are unchanged.
+
 ## 0.2.0-p7 — seamless all-18 preview
 
 - Preload all 18 cosmetic model/effect banks and 18 independent audio banks once.
