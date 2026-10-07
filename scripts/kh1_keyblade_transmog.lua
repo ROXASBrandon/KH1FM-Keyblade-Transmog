@@ -1,4 +1,4 @@
--- Experimental 0.2.0-p7: all 18 Keyblade graphics/effects/sound prototype.
+-- Experimental 0.2.0-p8: all 18 Keyblade graphics/effects/sound prototype.
 LUAGUI_NAME = "Keyblade Transmog - Seamless Prototype"
 LUAGUI_AUTH = "ROXASBrandon"
 LUAGUI_DESC = "Q toggles 18 preloaded looks, new trails and hit sounds; Shift+Q resets. Retains look across areas and death/retry."

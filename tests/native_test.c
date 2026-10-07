@@ -84,10 +84,21 @@ static void raw_reset(void) {
         memset(sound_assets[i],0,expected_sound_size[i]);memcpy(sound_assets[i],expected_sound[i],16);sound_alive[i]=1;
     }
 }
-int main(void) {
+int main(int argc,char **argv) {
+    assert(argc==2);
+    unsigned char *heart=malloc(heart_size);assert(heart);
+    FILE *fixture=fopen(argv[1],"rb");assert(fixture);
+    assert(fread(heart,1,heart_size,fixture)==heart_size && fgetc(fixture)==EOF);fclose(fixture);
+    assert(weapon_profile(0,heart_size,(uintptr_t)heart)==1);
+    assert(weapon_profile(1,heart_size,(uintptr_t)heart)==-1);
+    assert(weapon_profile(0,heart_size-1,(uintptr_t)heart)==-1);
+    heart[0x8566]^=1;assert(weapon_profile(0,heart_size,(uintptr_t)heart)==-1);heart[0x8566]^=1;
+    heart[8]^=1;assert(weapon_profile(0,heart_size,(uintptr_t)heart)==-1);heart[8]^=1;
+    assert(weapon_profile(0,heart_size,(uintptr_t)heart)==1);
+    puts("PASS: exact Heart profile accepted; wrong slot, size, header and changed payload rejected.");
     game=(uintptr_t)VirtualAlloc(NULL,0x4000000,MEM_RESERVE|MEM_COMMIT,PAGE_READWRITE);assert(game);
     for(int i=0;i<MODEL_COUNT;++i){raw_assets[i]=VirtualAlloc(NULL,expected_size[i],MEM_RESERVE|MEM_COMMIT,PAGE_READWRITE);assert(raw_assets[i]);sound_assets[i]=VirtualAlloc(NULL,expected_sound_size[i],MEM_RESERVE|MEM_COMMIT,PAGE_READWRITE);assert(sound_assets[i]);}
-    raw_reset();resolve=fake_resolve;load_file=fake_load;init_model=fake_init;resource_for=fake_resource;original_submit=fake_submit;original_frame=fake_frame;init_effect=fake_effect;install_bank=fake_bank;original_sound=fake_sound;original_trail=fake_trail;
+    raw_reset();memcpy(raw_assets[0],heart,heart_size);free(heart);resolve=fake_resolve;load_file=fake_load;init_model=fake_init;resource_for=fake_resource;original_submit=fake_submit;original_frame=fake_frame;init_effect=fake_effect;install_bank=fake_bank;original_sound=fake_sound;original_trail=fake_trail;
     uintptr_t actor=game+0x2000000,save=game+0x2100000;
     *(uintptr_t *)(game+0x2D37280)=actor;*(uintptr_t *)(game+0x2868BA0)=save;
     *(unsigned char *)(save+0x36)=86;*(uint32_t *)(actor+0x374)=1;*(uint32_t *)(actor+0x130)=99;
@@ -106,7 +117,8 @@ int main(void) {
     on_submit((void *)0x1234,(void *)0x5678,packet,(void *)actor);assert(!seamless_render_overrides);
     for(int i=0;i<MODEL_COUNT;++i) {
         assert(load_count==i+1);
-        completion(expected_size[i],i+1,raw_assets[i]);
+        completion(i==0?heart_size:expected_size[i],i+1,raw_assets[i]);
+        if(i==0) assert(cached[0].profile==1 && cached_valid(&cached[0]));
         assert(seamless_ready_mask==((1u<<(i+1))-1) && init_count==i+1 && seamless_phase==LOADING);
         tick_inputs(1,0,1,now+510+i);
     }
