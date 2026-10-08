@@ -70,6 +70,21 @@ Dream weapons, Wooden Sword, and special story equipment are excluded. Scripted 
 
 Tested independently and alongside Keyblade of Heart through OpenKH Build and Run.
 
+## Troubleshooting Q and console status
+
+Press F2 to open LuaBackend's console. In 0.2.0-p9, successful helper loading
+prints `Transmog: helper loaded`, followed by native hook and preload messages.
+Wait for `Ready experimental 0.2.0-p9` before testing Q. Stay in the same area
+while the initial 36 loads complete. If preload fails or the scene changes during
+preload, close and restart KH1 to retry.
+
+LuaBackend's generic “Initialization successful” message only confirms that the
+Lua script loaded. It does not confirm that the native helper is ready. Versions
+before p9 may have working cosmetic switching without visible native messages.
+Report unsupported-build, helper-unavailable, hook, or preload errors together
+with your game version/language and enabled mods. Install the Lua script and DLL
+from the same package; F1 cannot replace the pinned native helper.
+
 ## Removal
 
 Close the game, disable this mod in OpenKH, rebuild your enabled mods, and restart.

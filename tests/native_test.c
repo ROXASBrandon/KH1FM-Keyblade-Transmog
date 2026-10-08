@@ -84,7 +84,33 @@ static void raw_reset(void) {
         memset(sound_assets[i],0,expected_sound_size[i]);memcpy(sound_assets[i],expected_sound[i],16);sound_alive[i]=1;
     }
 }
+static void test_status_output(void) {
+    HANDLE saved=GetStdHandle(STD_OUTPUT_HANDLE),reader,writer;
+    assert(CreatePipe(&reader,&writer,NULL,0));
+    assert(SetStdHandle(STD_OUTPUT_HANDLE,writer));
+    report("Ready test.");
+    char line[128]={0};DWORD count;
+    assert(ReadFile(reader,line,sizeof(line)-1,&count,NULL));
+    assert(!strcmp(line,"[Seamless Prototype] Ready test.\r\n"));
+    CloseHandle(reader);CloseHandle(writer);
+    BOOL allocated=AllocConsole();
+    HANDLE screen=CreateConsoleScreenBuffer(GENERIC_READ|GENERIC_WRITE,
+        FILE_SHARE_READ|FILE_SHARE_WRITE,NULL,CONSOLE_TEXTMODE_BUFFER,NULL);
+    assert(screen!=INVALID_HANDLE_VALUE);
+    assert(SetStdHandle(STD_OUTPUT_HANDLE,screen));
+    report("Console test.");
+    memset(line,0,sizeof(line));COORD start={0,0};
+    const char *expected="[Seamless Prototype] Console test.";
+    assert(ReadConsoleOutputCharacterA(screen,line,(DWORD)strlen(expected),start,&count));
+    assert(count==strlen(expected) && !strcmp(line,expected));
+    CloseHandle(screen);if(allocated)FreeConsole();
+    assert(SetStdHandle(STD_OUTPUT_HANDLE,NULL));report("No console test.");
+    assert(SetStdHandle(STD_OUTPUT_HANDLE,INVALID_HANDLE_VALUE));report("Invalid console test.");
+    assert(SetStdHandle(STD_OUTPUT_HANDLE,saved));
+    puts("PASS: native status uses current Windows output handle despite independent CRT stdout; missing console is harmless.");
+}
 int main(int argc,char **argv) {
+    test_status_output();
     assert(argc==2);
     unsigned char *heart=malloc(heart_size);assert(heart);
     FILE *fixture=fopen(argv[1],"rb");assert(fixture);

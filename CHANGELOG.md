@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.0-p9 — console status visibility
+
+- Send native startup, preload, readiness and failure messages to the current
+  Windows output handle used by LuaBackend, instead of a separate CRT stdout.
+- Print successful helper loading through LuaBackend ConsolePrint.
+- Report failure to change frame-hook memory protection.
+- Preserve p8 cosmetic switching and verified Keyblade of Heart compatibility.
+- Console and redirected-output regression tests passed alongside existing
+  gameplay invariants. The author confirmed messages in the actual F2 console.
+
+
 ## Distribution update — 2026-10-07
 
 - Document downloaded OpenKH ZIP import as the third installation method.

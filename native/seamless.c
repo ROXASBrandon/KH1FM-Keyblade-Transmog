@@ -41,7 +41,7 @@ struct Cached {uintptr_t raw,model,draw,resource;uint32_t bytes;int index;uintpt
 static struct Cached cached[MODEL_COUNT];
 struct SoundCached {uintptr_t raw,resource;uint32_t bytes;int index,bank;};
 static struct SoundCached sounds[MODEL_COUNT];
-__declspec(dllexport) volatile uint32_t kh1_transmog_build=2008;
+__declspec(dllexport) volatile uint32_t kh1_transmog_build=2009;
 __declspec(dllexport) volatile uint32_t seamless_phase=WAITING;
 __declspec(dllexport) volatile uint32_t seamless_ready_mask;
 __declspec(dllexport) volatile uint32_t seamless_swaps;
@@ -71,7 +71,21 @@ static uintptr_t ptr(uintptr_t p) {return *(uintptr_t *)p;}
 static int bytes_at(uintptr_t rva,const unsigned char *b,size_t n) {
     return readable(game+rva,n) && !memcmp((void *)(game+rva),b,n);
 }
-static void report(const char *s) {printf("[Seamless Prototype] %s\n",s);fflush(stdout);}
+/* LuaBackend opens/rebinds its console after this DLL's CRT may initialize.
+   Resolve the live Windows output handle for each message, bypassing stale CRT
+   stdout. No Lua calls from native render or loader callbacks. */
+static void report(const char *s) {
+    HANDLE output=GetStdHandle(STD_OUTPUT_HANDLE);
+    if (!output || output==INVALID_HANDLE_VALUE) return;
+    char line[512];DWORD written,mode;
+    int length=snprintf(line,sizeof(line),"[Seamless Prototype] %s\r\n",s);
+    if (length<0) return;
+    if ((size_t)length>=sizeof(line)) length=(int)sizeof(line)-1;
+    if (GetConsoleMode(output,&mode))
+        WriteConsoleA(output,line,(DWORD)length,&written,NULL);
+    else
+        WriteFile(output,line,(DWORD)length,&written,NULL);
+}
 static int standard_equipment(void) {
     uintptr_t save=ptr(game+0x2868BA0);
     if (!readable(save,0x74)) return 0;
@@ -212,7 +226,7 @@ static int effect_layout(uintptr_t raw,uint32_t size,uint32_t offset,uint32_t en
 static void ready_if_complete(void) {
     if (seamless_ready_mask==ALL_MODELS_MASK && seamless_sound_ready_mask==ALL_MODELS_MASK) {
         seamless_phase=READY;
-        report("Ready experimental 0.2.0-p8: Q cycles all 18 Keyblade graphics, new trails and hit sounds; Shift+Q resets.");
+        report("Ready experimental 0.2.0-p9: Q cycles all 18 Keyblade graphics, new trails and hit sounds; Shift+Q resets.");
     }
 }
 static void __fastcall sound_ready(void *user) {
@@ -495,7 +509,7 @@ __declspec(dllexport) int __cdecl kh1_transmog_bootstrap(void *lua_state) {
     uintptr_t app=ptr(game+0x21AAF18);
     if(!readable(app,8)||!readable(ptr(app),40))return 0;
     FrameProc *slot=(FrameProc *)(ptr(app)+32);if(!*slot)return 0;
-    DWORD old;if(!VirtualProtect(slot,8,PAGE_READWRITE,&old)){failed=1;return 0;}
+    DWORD old;if(!VirtualProtect(slot,8,PAGE_READWRITE,&old)){failed=1;report("Frame hook protection change failed; disabled.");return 0;}
     HMODULE pinned;
     if(!GetModuleHandleExW(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS|GET_MODULE_HANDLE_EX_FLAG_PIN,
         (LPCWSTR)(uintptr_t)&on_frame,&pinned)||!install_render_hook()){
@@ -503,5 +517,5 @@ __declspec(dllexport) int __cdecl kh1_transmog_bootstrap(void *lua_state) {
     }
     original_frame=(FrameProc)InterlockedExchangePointer((PVOID volatile *)slot,(PVOID)&on_frame);
     DWORD unused;VirtualProtect(slot,8,old,&unused);enabled=1;
-    report("Experimental 0.2.0-p8 graphics/effect/sound hooks installed. Waiting for idle gameplay.");return 0;
+    report("Experimental 0.2.0-p9 graphics/effect/sound hooks installed. Waiting for idle gameplay.");return 0;
 }
