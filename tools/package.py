@@ -25,7 +25,7 @@ for name in files:
                 raise ValueError('Private path in '+name)
 with zipfile.ZipFile(archive, 'w', compression=zipfile.ZIP_DEFLATED) as z:
     for name in files:
-        info = zipfile.ZipInfo(name, date_time=(2026, 10, 8, 0, 0, 0))
+        info = zipfile.ZipInfo(name, date_time=(2026, 10, 25, 0, 0, 0))
         info.compress_type = zipfile.ZIP_DEFLATED
         info.external_attr = 0o100644 << 16
         z.writestr(info, (ROOT/name).read_bytes())

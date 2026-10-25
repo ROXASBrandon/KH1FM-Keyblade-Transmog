@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.2.0-p10 — 2026-10-25
+
+- Q switching could remain disabled despite successful loading and complete preload.
+- Fix event-bitfield detection: persistent high flags such as `0x18` no longer count as an active cutscene by themselves. Low event blockers and existing gameplay guards remain enforced.
+- The author confirmed Q switching works after restarting with the corrected gameplay check.
+- Close KH1 normally before updating; replace the previous copy, rebuild in OpenKH, and restart. Native helpers cannot be replaced with F1 reload.
+
 ## 0.2.0-p9 — console status visibility
 
 - Send native startup, preload, readiness and failure messages to the current

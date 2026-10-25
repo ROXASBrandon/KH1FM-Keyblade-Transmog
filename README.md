@@ -8,6 +8,14 @@ Press **Q** to instantly cycle through **18 Keyblade appearances**, with matchin
 
 Compatible with my [Keyblade of Heart mod](https://github.com/ROXASBrandon/KH1FM-Keyblade-of-Heart).
 
+## v0.2.0-p10: gameplay detection fix
+
+Q switching could remain disabled despite successful loading and complete preload. This update fixes false cutscene detection from persistent event flags.
+
+The author confirmed Q switching works after restarting with the corrected gameplay check.
+
+**Updating:** Close KH1 normally, replace the old mod copy, keep only one copy enabled, then use OpenKH **Build and Run**. Fully restart after updating; F1 reload cannot replace a native helper.
+
 ## Features
 
 - Switch appearances during normal gameplay without re-equipping your weapon.

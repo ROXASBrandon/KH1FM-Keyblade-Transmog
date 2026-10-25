@@ -136,6 +136,13 @@ int main(int argc,char **argv) {
     memcpy(weapon_before,actual_weapon,sizeof(actual_weapon));
     *(unsigned char *)(game+0x2D5CC4C)=100;*(float *)(game+0x281249C)=1;
     *(uint32_t *)(game+0x296B540)=5;*(uintptr_t *)(packet+0x18)=0xBBBB;
+    /* 0x23AB2D0 is an event bitfield. High flags can remain during gameplay.
+       Preserve all existing low event blockers, including when high bits coexist. */
+    for (unsigned flags=0;flags<256;++flags) {
+        *(unsigned char *)(game+0x23AB2D0)=(unsigned char)flags;
+        assert(gameplay()==((flags&7u)==0));
+    }
+    *(unsigned char *)(game+0x23AB2D0)=0x18;
     ULONGLONG now=GetTickCount64();
     tick_inputs(0,0,1,now);assert(!load_count);
     tick_inputs(1,0,1,now+500);assert(load_count==1 && seamless_phase==LOADING);

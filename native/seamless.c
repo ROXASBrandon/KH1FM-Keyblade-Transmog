@@ -41,7 +41,7 @@ struct Cached {uintptr_t raw,model,draw,resource;uint32_t bytes;int index;uintpt
 static struct Cached cached[MODEL_COUNT];
 struct SoundCached {uintptr_t raw,resource;uint32_t bytes;int index,bank;};
 static struct SoundCached sounds[MODEL_COUNT];
-__declspec(dllexport) volatile uint32_t kh1_transmog_build=2009;
+__declspec(dllexport) volatile uint32_t kh1_transmog_build=2010;
 __declspec(dllexport) volatile uint32_t seamless_phase=WAITING;
 __declspec(dllexport) volatile uint32_t seamless_ready_mask;
 __declspec(dllexport) volatile uint32_t seamless_swaps;
@@ -92,11 +92,12 @@ static int standard_equipment(void) {
     unsigned item=*(unsigned char *)(save+0x36);
     return item==81 || (item>=86 && item<=102);
 }
+/* Event state is a bitfield; high flags (including 0x18) can persist in gameplay. */
 static int gameplay(void) {
     uintptr_t actor=ptr(game+0x2D37280);
     return readable(actor,0x4B0) && (u32(actor+0x374)&3)==1 &&
         *(unsigned char *)(game+0x2D5CC4C)>0 && !u32(game+0x232DFA0) &&
-        !*(unsigned char *)(game+0x22EC0AC) && !*(unsigned char *)(game+0x23AB2D0) &&
+        !*(unsigned char *)(game+0x22EC0AC) && !(*(unsigned char *)(game+0x23AB2D0)&7u) &&
         !*(unsigned char *)(game+0x5075A8) && *(float *)(game+0x281249C)>0.5f;
 }
 static uintptr_t weapon(uintptr_t actor) {
@@ -226,7 +227,7 @@ static int effect_layout(uintptr_t raw,uint32_t size,uint32_t offset,uint32_t en
 static void ready_if_complete(void) {
     if (seamless_ready_mask==ALL_MODELS_MASK && seamless_sound_ready_mask==ALL_MODELS_MASK) {
         seamless_phase=READY;
-        report("Ready experimental 0.2.0-p9: Q cycles all 18 Keyblade graphics, new trails and hit sounds; Shift+Q resets.");
+        report("Ready experimental 0.2.0-p10: Q cycles all 18 Keyblade graphics, new trails and hit sounds; Shift+Q resets.");
     }
 }
 static void __fastcall sound_ready(void *user) {
@@ -517,5 +518,5 @@ __declspec(dllexport) int __cdecl kh1_transmog_bootstrap(void *lua_state) {
     }
     original_frame=(FrameProc)InterlockedExchangePointer((PVOID volatile *)slot,(PVOID)&on_frame);
     DWORD unused;VirtualProtect(slot,8,old,&unused);enabled=1;
-    report("Experimental 0.2.0-p9 graphics/effect/sound hooks installed. Waiting for idle gameplay.");return 0;
+    report("Experimental 0.2.0-p10 graphics/effect/sound hooks installed. Waiting for idle gameplay.");return 0;
 }
